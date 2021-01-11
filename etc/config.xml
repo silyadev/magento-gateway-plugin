@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <vendo_payment>
+                <active>0</active>
+                <model>Vendo\Gateway\Model\PaymentMethod</model>
+                <title>Vendo Gateway</title>
+                <is_test>1</is_test>
+                <cctypes>CUP,AE,VI,MC,DI,JCB,DN,MI</cctypes>
+                <useccv>1</useccv>
+                <group>vendo</group>
+                <method_title>Pay with credit card or debit card</method_title>
+                <can_use_checkout>1</can_use_checkout>
+                <method_description>Vendo accepts the major credit cards and debit cards brands.</method_description>
+                <payment_action>authorize_capture</payment_action>
+            </vendo_payment>
+        </payment>
+    </default>
+</config>
