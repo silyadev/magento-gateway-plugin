@@ -1,0 +1,12 @@
+.settings/*
+.buildpath
+.project
+*.swp
+*.log
+*.swo
+*.pid
+.DS_Store
+.jira-url
+.tags
+.idea/*
+*.zip
