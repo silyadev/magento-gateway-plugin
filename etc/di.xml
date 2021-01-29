@@ -20,4 +20,7 @@
             <argument name="logger" xsi:type="object">Vendo\Gateway\Logger\Logger</argument>
         </arguments>
     </type>
+    <type name="Magento\Sales\Api\Data\OrderPaymentInterface">
+        <plugin name="PaymentVendoExtensionAttributeOperations" type="Vendo\Gateway\Plugin\PaymentVendoAttributesLoad"/>
+    </type>
 </config>

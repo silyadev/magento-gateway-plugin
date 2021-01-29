@@ -9,5 +9,8 @@
         <method name="vendo_payment">
             <allow_multiple_address>0</allow_multiple_address>
         </method>
+        <method name="vendo_sepa">
+            <allow_multiple_address>0</allow_multiple_address>
+        </method>
     </methods>
 </payment>

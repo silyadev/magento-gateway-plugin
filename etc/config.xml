@@ -16,6 +16,17 @@
                 <method_description>Vendo accepts the major credit cards and debit cards brands.</method_description>
                 <payment_action>authorize_capture</payment_action>
             </vendo_payment>
+            <vendo_sepa>
+                <active>0</active>
+                <model>Vendo\Gateway\Model\Sepa</model>
+                <order_status>pending</order_status>
+                <title>Sepa</title>
+                <allowspecific>0</allowspecific>
+                <group>vendo</group>
+                <method_title>SEPA (EU direct debit)</method_title>
+                <can_use_checkout>1</can_use_checkout>
+                <payment_action>authorize_capture</payment_action>
+            </vendo_sepa>
         </payment>
     </default>
 </config>

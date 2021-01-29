@@ -39,6 +39,8 @@ class PaymentMethod extends Cc
 
     protected $_code = self::CODE;
 
+    const CC_DETAILS = 'cc_details';
+
     /**
      * Availability option
      *
@@ -173,7 +175,7 @@ class PaymentMethod extends Cc
      */
     public const RESPONSE_CODE_APPROVED = 1;
 
-    public const RESPONSE_CODE_3DS_REQUIRED = 2;
+    public const RESPONSE_CODE_VERIFICATION_REQUIRED = 2;
 
     /**
      * actionType
@@ -711,7 +713,7 @@ class PaymentMethod extends Cc
     public function _processErrors($response)
     {
         $body = json_decode($response, true);
-        if (!in_array($body['status'], [self::RESPONSE_CODE_APPROVED, self::RESPONSE_CODE_3DS_REQUIRED])) {
+        if (!in_array($body['status'], [self::RESPONSE_CODE_APPROVED, self::RESPONSE_CODE_VERIFICATION_REQUIRED])) {
             $errorMessage = $this->_buildErrorMessage($body);
             throw new LocalizedExceptionAlias($errorMessage);
         }
@@ -746,7 +748,7 @@ class PaymentMethod extends Cc
 
                 }
                 break;
-            case self::RESPONSE_CODE_3DS_REQUIRED:
+            case self::RESPONSE_CODE_VERIFICATION_REQUIRED:
                 $message = '3DS Verification required. Redirecting to Vendo\'s verification endpoint';
                 $this->vendoHelpers->log(
                     $message,
@@ -936,6 +938,7 @@ class PaymentMethod extends Cc
 
     /**
      * Save payment token to payment extension attributes
+     * @param $payment
      * @param array $body
      * @param array $requestParams
      */

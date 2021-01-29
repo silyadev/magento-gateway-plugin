@@ -16,6 +16,7 @@ use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\PaymentAdapterInterface;
 use Psr\Log\LogLevel;
 use \Vendo\Gateway\Model\PaymentMethod;
+use \Vendo\Gateway\Model\Sepa;
 use Vendo\Gateway\Model\VendoHelpers;
 use Magento\Sales\Model\Order\Invoice;
 
@@ -136,13 +137,16 @@ class Index extends Action
             $payment = $order->getPayment();
 
             $methodCode = $payment->getMethod();
-            if (!($methodCode === PaymentMethod::CODE)) {
+            if (!in_array($methodCode, [PaymentMethod::CODE, Sepa::CODE])) {
                 $this->redirectCart('Wrong payment method');
             }
 
-            $token = $payment->getExtensionAttributes()->getVaultPaymentToken()->getGatewayToken();
+            $token = $payment->getAdditionalInformation('sepa_payment_token');
             if (!$token) {
-                $this->redirectCart('No payment token');
+                $token = $payment->getExtensionAttributes()->getVaultPaymentToken()->getGatewayToken();
+                if (!$token) {
+                    $this->redirectCart('No payment token');
+                }
             }
 
             $invoice_details = $order->getInvoiceCollection();
@@ -158,7 +162,7 @@ class Index extends Action
                 $this->checkoutSession
                     ->setLastOrderId($orderId)
                     ->setLastRealOrderId($incrementId);
-                $this->vendoHelpers->addOrderCommentForAdmin($payment->getOrder(), "3ds verification completed");
+                $this->vendoHelpers->addOrderCommentForAdmin($payment->getOrder(), "Verification completed");
                 $redirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
                 $redirect->setUrl('/checkout/onepage/success');
                 $this->checkoutSession->setData(PaymentMethod::RETRY_KEY, null);
@@ -170,7 +174,7 @@ class Index extends Action
 
             if ($order->getStatus() === Order::STATE_PAYMENT_REVIEW) {
                 if ($url = $this->_registry->registry('verification_url')) {
-                    return $this->redirectCart("3ds verification still needed", true);
+                    return $this->redirectCart("The payment verification failed, please try again.", true);
                 }
             }
         } catch (\Exception $e) {
@@ -230,12 +234,19 @@ class Index extends Action
                 } catch (\Exception $e) {
                 }
                 if ($cancelOrder) {
-                    $this->vendoHelpers->addOrderCommentForAdmin($order, PaymentMethod::CANCEL_MESSAGE);
-                    $this->vendoHelpers->log(PaymentMethod::CANCEL_MESSAGE, LogLevel::ERROR);
+                    $methodInstance  = $order->getPayment()->getMethodInstance();
+                    $this->vendoHelpers->addOrderCommentForAdmin($order, $methodInstance::CANCEL_MESSAGE);
+                    $this->vendoHelpers->log($methodInstance::CANCEL_MESSAGE, LogLevel::ERROR);
+                    $invoice_details = $order->getInvoiceCollection();
+                    foreach ($invoice_details as $invoice) {
+                        if ($invoice->getState() == Invoice::STATE_OPEN) {
+                            $invoice->cancel();
+                            $invoice->save();
+                        }
+                    }
                     $this->orderManagement->cancel($order->getId());
-                    $order->setState(Order::STATE_CANCELED)->setStatus(Order::STATE_CANCELED);
                     $order->save();
-//                    $order->registerCancellation($errorMsg, true)->save();
+                    $this->orderManagement->cancel($order->getEntityId());
                 }
             }
         }

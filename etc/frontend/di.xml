@@ -4,6 +4,7 @@
         <arguments>
             <argument name="methodCodes" xsi:type="array">
                 <item name="vendo_payment" xsi:type="const">Vendo\Gateway\Model\PaymentMethod::CODE</item>
+                <item name="vendo_sepa" xsi:type="const">Vendo\Gateway\Model\Sepa::CODE</item>
             </argument>
         </arguments>
 

@@ -1,0 +1,41 @@
+<fieldset data-bind="attr: {class: 'fieldset payment items sepa ' + getCode(), id: 'payment_form_' + getCode()}">
+    <!-- ko if: (isShowLegend())-->
+    <legend class="legend">
+        <span><!-- ko i18n: 'SEPA Bank Information'--><!-- /ko --></span>
+    </legend><br />
+    <!-- /ko -->
+    <div class="field iban required">
+        <label data-bind="attr: {for: getCode() + '_iban'}" class="label">
+            <span><!-- ko i18n: 'IBAN - International Bank Number'--><!-- /ko --></span>
+        </label>
+        <div class="control">
+            <input type="text" name="payment[iban]" class="input-text" value="" autocomplete="off"
+                   data-bind="attr: {
+                                    autocomplete: 'off',
+                                    id: getCode() + '_iban',
+                                    title: $t('IBAN - International Bank Number'),
+                                    'data-container': getCode() + '-iban',
+                                    'data-validate': JSON.stringify({'required':true})},
+                              enable: isActive($parents),
+                              value: iban,
+                              valueUpdate: 'keyup' "/>
+        </div>
+    </div>
+    <div class="field bic_swift required">
+        <label data-bind="attr: {for: getCode() + '_bic_swift'}" class="label">
+            <span><!-- ko i18n: 'SWIFT / BIC'--><!-- /ko --></span>
+        </label>
+        <div class="control">
+            <input type="text" name="payment[bic_swift]" class="input-text" value="" autocomplete="off"
+                   data-bind="attr: {
+                                    autocomplete: 'off',
+                                    id: getCode() + '_bic_swift',
+                                    title: $t('SWIFT / BIC'),
+                                    'data-container': getCode() + '-bic_swift',
+                                    'data-validate': JSON.stringify({'required':true})},
+                              enable: isActive($parents),
+                              value: bic_swift,
+                              valueUpdate: 'keyup' "/>
+        </div>
+    </div>
+</fieldset>

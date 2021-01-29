@@ -106,6 +106,36 @@
                     </depends>
                 </field>
             </group>
+            <group id="vendo_sepa" translate="label" sortOrder="110" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Vendo Gateway SEPA (EU direct debit)</label>
+                <field id="active" translate="label comment" sortOrder="10" type="select" showInDefault="1"
+                       showInWebsite="1" showInStore="0">
+                    <label>Enable SEPA</label>
+                    <comment>Please make sure Vendo Gateway is configured. SEPA will be active only if Vendo site id, merchant id, keys is configured and enabled.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="method_title" translate="label comment" sortOrder="20" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Title</label>
+                    <comment>The title that the user sees in the checkout process.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment from Applicable Countries</label> <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="specificcountry" translate="label" type="multiselect" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment from Specific Countries</label> <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+            </group>
         </section>
     </system>
 </config>
