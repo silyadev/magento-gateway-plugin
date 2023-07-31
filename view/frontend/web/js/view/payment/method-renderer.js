@@ -14,9 +14,12 @@ define(
                 component: 'Vendo_Gateway/js/view/payment/method-renderer/vendo_payment'
             },
             {
-
                 type: 'vendo_sepa',
                 component: 'Vendo_Gateway/js/view/payment/method-renderer/vendo_sepa'
+            },
+            {
+                type: 'vendo_pix',
+                component: 'Vendo_Gateway/js/view/payment/method-renderer/vendo_pix'
             }
         );
         return Component.extend({});

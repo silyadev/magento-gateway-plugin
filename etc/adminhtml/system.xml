@@ -136,6 +136,24 @@
                     </depends>
                 </field>
             </group>
+            <group id="vendo_pix" translate="label" sortOrder="120" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>PIX (Brazil only)</label>
+                <field id="active" translate="label comment" sortOrder="10" type="select" showInDefault="1"
+                       showInWebsite="1" showInStore="0">
+                    <label>Enable PIX</label>
+                    <comment>Please make sure Vendo Gateway is configured. PIX will be active only if Vendo site id, merchant id, keys is configured and enabled.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" translate="label comment" sortOrder="20" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Title</label>
+                    <comment>The title that the user sees in the checkout process.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+            </group>
         </section>
     </system>
 </config>

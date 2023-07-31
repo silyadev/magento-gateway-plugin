@@ -23,4 +23,56 @@
     <type name="Magento\Sales\Api\Data\OrderPaymentInterface">
         <plugin name="PaymentVendoExtensionAttributeOperations" type="Vendo\Gateway\Plugin\PaymentVendoAttributesLoad"/>
     </type>
+    <virtualType name="PixFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Vendo\Gateway\Model\Ui\Pix\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">PixValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">PixValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">PixCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PixValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">PixConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PixConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">Vendo\Gateway\Gateway\Pix</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PixValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="availability" xsi:type="string">Vendo\Gateway\Gateway\Validator\Pix\AvailabilityValidator</item>
+                <item name="country" xsi:type="string">Vendo\Gateway\Gateway\Validator\Pix\CountryValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PixCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">PixAuthorizeCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PixAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">PixAuthorizeRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Vendo\Gateway\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Vendo\Gateway\Gateway\Http\Client\Authorize</argument>
+            <argument name="handler" xsi:type="object">Vendo\Gateway\Gateway\Handler\PixAuthorizeResponseHandler</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PixAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="authorize" xsi:type="string">Vendo\Gateway\Request\Pix\AuthorizeRequestBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>
