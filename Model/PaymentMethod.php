@@ -36,6 +36,9 @@ class PaymentMethod extends Cc
 {
 
     const CODE = 'vendo_payment';
+    const PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON = 1;
+    const PAYMENT_RESPONSE_STATUS_USE_IN_CRON = 2;
+    const PAYMENT_RESPONSE_STATUS_USED_IN_CRON_SUCCESS = 3;
 
     protected $_code = self::CODE;
 
@@ -743,9 +746,10 @@ class PaymentMethod extends Cc
                 $payment->setTransactionId($body['transaction']['id'])->setIsTransactionClosed(true);
                 try {
                     $payment->getOrder()->setState(Order::STATE_PROCESSING)->setStatus(Order::STATE_PROCESSING);
+                    $payment->getOrder()->setVendoPaymentResponseStatus(self::PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON); // Save flag for use in cron job.
                     $payment->getOrder()->save();
                 } catch (\Exception $e) {
-
+                    $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
                 }
                 break;
             case self::RESPONSE_CODE_VERIFICATION_REQUIRED:
@@ -770,6 +774,17 @@ class PaymentMethod extends Cc
                 $this->checkoutSession->setData(self::SESSION_ORDER_KEY, $payment->getOrder()->getId());
                 $this->checkoutSession->setData(self::SESSION_ORDER_INC_KEY, $payment->getOrder()->getIncrementId());
                 $this->vendoHelpers->addOrderCommentForAdmin($payment->getOrder(), "Redirecting..." . $body['result']['verification_url']);
+                // Save flag for use in cron job.
+                // 'vendo_payment_response_status' => 1 => not use job
+                // 'vendo_payment_response_status' => 2 => use in cron job => Vendo checks if a successful verification has been recorded for this payment.
+                //$this->vendoHelpers->log('$requestParams: ' . var_export($requestParams, true), LogLevel::DEBUG); // For debug
+                try {
+                    $payment->getOrder()->setVendoPaymentResponseStatus(self::PAYMENT_RESPONSE_STATUS_USE_IN_CRON);
+                    $payment->getOrder()->setRequestObjectVendo(serialize($requestParams));
+                    $payment->getOrder()->save();
+                } catch (\Exception $e) {
+                    $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
+                }
                 break;
             default:
                 break;
@@ -827,6 +842,14 @@ class PaymentMethod extends Cc
             $request->setApiSecret($this->_encryptor->decrypt($this->getConfigData('api_secret')));
         }
 
+        // Add Settings 'success_url' .
+        if (!empty($this->getConfigData('success_url'))) {
+            $request->setSuccessUrl($this->getConfigData('success_url'));
+        }
+
+        // Set 'non_recurring' = true.
+        $request->setNonRecurring(true);
+
         $request = $this->_prepareCardDetails($request, $payment, $amount);
         $request = $this->setRequestDetails($request);
 
@@ -851,6 +874,14 @@ class PaymentMethod extends Cc
         } else {
             $request->setApiSecret($this->_encryptor->decrypt($this->getConfigData('api_secret')));
         }
+
+        // Add Settings 'success_url' .
+        if (!empty($this->getConfigData('success_url'))) {
+            $request->setSuccessUrl($this->getConfigData('success_url'));
+        }
+
+        // Set 'non_recurring' = true.
+        $request->setNonRecurring(true);
 
         return $request;
     }

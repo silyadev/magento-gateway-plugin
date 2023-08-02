@@ -11,6 +11,7 @@ use Vendo\Gateway\Model\VendoHelpers;
  */
 class Vendo
 {
+    const VENDO_MODULE_VERSION = '1.0.1';
 
     /**
      * @var Curl
@@ -75,7 +76,7 @@ class Vendo
     public function _processPostRequest($gatewaydata, $gatewayurl)
     {
 
-        $headers = ["Content-Type" => "application/json", "charset" => "utf-8"];
+        $headers = ["Content-Type" => "application/json", "charset" => "utf-8", "X-VENDOGWAPI_PLUGIN" => self::VENDO_MODULE_VERSION];
         $this->_curl->setHeaders($headers);
         $this->_curl->setOption(CURLOPT_RETURNTRANSFER, true);
         $this->_curl->setOption(CURLOPT_SSL_VERIFYPEER, false);

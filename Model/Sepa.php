@@ -266,9 +266,10 @@ class Sepa extends PaymentMethod
                 $payment->setTransactionId($body['transaction']['id'])->setIsTransactionClosed(true);
                 try {
                     $payment->getOrder()->setState(Order::STATE_PROCESSING)->setStatus(Order::STATE_PROCESSING);
+                    $payment->getOrder()->setVendoPaymentResponseStatus(\Vendo\Gateway\Model\PaymentMethod::PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON); // Save flag for use in cron job.
                     $payment->getOrder()->save();
                 } catch (\Exception $e) {
-
+                    $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
                 }
                 break;
             case self::RESPONSE_CODE_VERIFICATION_REQUIRED:
@@ -301,6 +302,16 @@ class Sepa extends PaymentMethod
                 $this->checkoutSession->setData(self::SESSION_ORDER_KEY, $payment->getOrder()->getId());
                 $this->checkoutSession->setData(self::SESSION_ORDER_INC_KEY, $payment->getOrder()->getIncrementId());
                 $this->vendoHelpers->addOrderCommentForAdmin($payment->getOrder(), "Redirecting..." . $body['result']['verification_url']);
+                // Save flag for use in cron job.
+                // 'vendo_payment_response_status' => 1 => not use job
+                // 'vendo_payment_response_status' => 2 => use in cron job => Vendo checks if a successful verification has been recorded for this payment.
+                try {
+                    $payment->getOrder()->setVendoPaymentResponseStatus(\Vendo\Gateway\Model\PaymentMethod::PAYMENT_RESPONSE_STATUS_USE_IN_CRON);
+                    $payment->getOrder()->setRequestObjectVendo(serialize($requestParams));
+                    $payment->getOrder()->save();
+                } catch (\Exception $e) {
+                    $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
+                }
                 break;
             default:
                 break;

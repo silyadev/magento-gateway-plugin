@@ -72,6 +72,13 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
+                <field id="success_url" translate="label" sortOrder="55" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Success Url</label>
+                    <comment>Vendo Redirect To Success Url (Used 3D Secure)</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
                 <field id="cc_types" translate="label" type="multiselect" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Credit Card Types</label>
                     <source_model>Magento\Payment\Model\Source\Cctype</source_model>
@@ -119,6 +126,13 @@
                        showInStore="1">
                     <label>Title</label>
                     <comment>The title that the user sees in the checkout process.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="success_url" translate="label" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Success Url</label>
+                    <comment>Vendo Redirect To Success Url (Used 3D Secure)[SEPA]</comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
