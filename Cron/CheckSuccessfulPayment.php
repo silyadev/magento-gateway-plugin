@@ -130,6 +130,10 @@ class CheckSuccessfulPayment
                                         if (!empty($order)) {
                                             // Set 'flags' in order.
                                             try {
+                                                if (!empty($responseArray->transaction->amount)) {
+                                                    $order->setBaseTotalPaid(number_format($responseArray->transaction->amount, 4, '.', ''));
+                                                    $order->setTotalPaid(number_format($responseArray->transaction->amount, 4, '.', ''));
+                                                }
                                                 $order->setState(Order::STATE_PROCESSING)->setStatus(Order::STATE_PROCESSING);
                                                 $order->setVendoPaymentResponseStatus(\Vendo\Gateway\Model\PaymentMethod::PAYMENT_RESPONSE_STATUS_USED_IN_CRON_SUCCESS);
                                                 $order->save();

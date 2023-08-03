@@ -450,8 +450,10 @@ class PaymentMethod extends Cc
          *
          * If the refund should be for the total amount of the original transaction please don't send the partial_amount param.
          */
-        if (round($payment->getAmountPaid(), 2) > (round($amount, 2) + round($payment->getAmountRefunded(), 2))) {
-            $request->setPartialAmount(round($amount, 2));
+        if (!empty($payment->getAmountPaid()) && !empty($amount) && !empty($payment->getAmountRefunded())) {
+            if (round($payment->getAmountPaid(), 2) > (round($amount, 2) + round($payment->getAmountRefunded(), 2))) {
+                $request->setPartialAmount(round($amount, 2));
+            }
         }
 
 
