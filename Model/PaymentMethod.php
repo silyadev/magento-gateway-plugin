@@ -39,6 +39,7 @@ class PaymentMethod extends Cc
     const PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON = 1;
     const PAYMENT_RESPONSE_STATUS_USE_IN_CRON = 2;
     const PAYMENT_RESPONSE_STATUS_USED_IN_CRON_SUCCESS = 3;
+    const PAYMENT_RESPONSE_STATUS_USED_IN_VENDO_CAPTURE_SUCCESS = 4;
 
     protected $_code = self::CODE;
 
@@ -156,6 +157,7 @@ class PaymentMethod extends Cc
     protected $_encryptor;
 
     public const TRANSACTION_URL = 'https://secure.vend-o.com/api/payment';
+    public const TRANSACTION_CAPTURE_URL = 'https://secure.vend-o.com/api/gateway/capture';
 
     public const REFUND_URL = 'https://secure.vend-o.com/api/gateway/refund';
 
@@ -749,6 +751,7 @@ class PaymentMethod extends Cc
                 try {
                     $payment->getOrder()->setState(Order::STATE_PROCESSING)->setStatus(Order::STATE_PROCESSING);
                     $payment->getOrder()->setVendoPaymentResponseStatus(self::PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON); // Save flag for use in cron job.
+                    $payment->getOrder()->setRequestObjectVendo(serialize($requestParams));
                     $payment->getOrder()->save();
                 } catch (\Exception $e) {
                     $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
@@ -852,6 +855,12 @@ class PaymentMethod extends Cc
         // Set 'non_recurring' = true.
         $request->setNonRecurring(true);
 
+        // Set 'preauth_only' = true.
+        $preauthOnlyValue = (bool)$this->getConfigData('preauth_only');
+        if (!empty($preauthOnlyValue)) {
+            $request->setPreauthOnly($preauthOnlyValue);
+        }
+
         $request = $this->_prepareCardDetails($request, $payment, $amount);
         $request = $this->setRequestDetails($request);
 
@@ -884,6 +893,12 @@ class PaymentMethod extends Cc
 
         // Set 'non_recurring' = true.
         $request->setNonRecurring(true);
+
+        // Set 'preauth_only' = true.
+        $preauthOnlyValue = (bool)$this->getConfigData('preauth_only');
+        if (!empty($preauthOnlyValue)) {
+            $request->setPreauthOnly($preauthOnlyValue);
+        }
 
         return $request;
     }

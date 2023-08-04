@@ -8,6 +8,7 @@
                 <model>Vendo\Gateway\Model\PaymentMethod</model>
                 <title>Vendo Gateway</title>
                 <is_test>1</is_test>
+                <preauth_only>0</preauth_only>
                 <cctypes>CUP,AE,VI,MC,DI,JCB,DN,MI</cctypes>
                 <useccv>1</useccv>
                 <group>vendo</group>
@@ -21,6 +22,7 @@
                 <model>Vendo\Gateway\Model\Sepa</model>
                 <order_status>pending</order_status>
                 <title>Sepa</title>
+                <preauth_only>0</preauth_only>
                 <allowspecific>0</allowspecific>
                 <group>vendo</group>
                 <method_title>SEPA (EU direct debit)</method_title>

@@ -23,4 +23,5 @@
     <type name="Magento\Sales\Api\Data\OrderPaymentInterface">
         <plugin name="PaymentVendoExtensionAttributeOperations" type="Vendo\Gateway\Plugin\PaymentVendoAttributesLoad"/>
     </type>
+    <preference for="Magento\Sales\Block\Adminhtml\Order\View" type="Vendo\Gateway\Block\Adminhtml\Order\View"/>
 </config>

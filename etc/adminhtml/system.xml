@@ -79,6 +79,16 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
+                <field id="preauth_only" translate="label" sortOrder="56" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pre-Authorization Only</label>
+                    <comment>'No' => Auto: preauth and capture happens in the same request. 'Yes' => Manual: preauth is done on the
+                        first request and capture is manually triggered on a new request, param 'preauth_only'.
+                    </comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
                 <field id="cc_types" translate="label" type="multiselect" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Credit Card Types</label>
                     <source_model>Magento\Payment\Model\Source\Cctype</source_model>
@@ -133,6 +143,16 @@
                 <field id="success_url" translate="label" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Success Url</label>
                     <comment>Vendo Redirect To Success Url (Used 3D Secure)[SEPA]</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="preauth_only" translate="label" sortOrder="26" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Pre-Authorization Only</label>
+                    <comment>'No' => Auto: preauth and capture happens in the same request. 'Yes' => Manual: preauth is done on the
+                        first request and capture is manually triggered on a new request, param 'preauth_only'.
+                    </comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
