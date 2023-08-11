@@ -75,4 +75,5 @@
             </argument>
         </arguments>
     </virtualType>
+    <preference for="Vendo\Gateway\Api\PixServiceInterface" type="Vendo\Gateway\Model\PixService" />
 </config>
