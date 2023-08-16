@@ -7,7 +7,13 @@
                 <item name="vendo_sepa" xsi:type="const">Vendo\Gateway\Model\Sepa::CODE</item>
             </argument>
         </arguments>
-
+    </type>
+    <type name="Magento\Checkout\Model\CompositeConfigProvider">
+        <arguments>
+            <argument name="configProviders" xsi:type="array">
+                <item name="vendo_pix_config" xsi:type="object">Vendo\Gateway\Model\Ui\Pix\ConfigProvider</item>
+            </argument>
+        </arguments>
     </type>
     <type name="Vendo\Gateway\Model\PaymentMethod">
         <arguments>

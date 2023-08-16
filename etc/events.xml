@@ -3,4 +3,7 @@
     <event name="payment_method_assign_data_vendo_sepa">
         <observer name="vendo_sepa_data_assigner" instance="Vendo\Gateway\Observer\SepaAddData" />
     </event>
+    <event name="payment_method_assign_data_vendo_pix">
+        <observer name="vendo_pix_data_assigner" instance="Vendo\Gateway\Observer\PixAddData" />
+    </event>
 </config>
