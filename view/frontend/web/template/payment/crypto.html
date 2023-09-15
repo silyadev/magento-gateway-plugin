@@ -28,7 +28,7 @@
                         data-bind="
                         attr: {title: $t('Place Order')},
                         enable: (getCode() == isChecked()),
-                        click: placeOrder,
+                        click: cryptoPlaceOrder,
                         css: {disabled: !isPlaceOrderActionAllowed()}
                         "
                         class="action primary checkout"

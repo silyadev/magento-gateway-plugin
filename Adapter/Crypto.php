@@ -2,7 +2,7 @@
 
 namespace Vendo\Gateway\Adapter;
 
-class Pix
+class Crypto
 {
     private $basicAdapter;
 

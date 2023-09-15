@@ -1,80 +1,65 @@
 define(
     [
-        'Magento_Payment/js/view/payment/cc-form',
+        'Magento_Checkout/js/view/payment/default',
         'jquery',
+        'Magento_Checkout/js/model/url-builder',
+        'Vendo_Gateway/js/action/get-crypto-verification-url',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/model/payment/additional-validators',
-        'Magento_Payment/js/model/credit-card-validation/credit-card-data',
-        'Magento_Payment/js/model/credit-card-validation/validator',
-        'mage/cookies',
-        'jquery/jquery-storageapi',
-        'mage/translate'
+        'mage/validation'
     ],
-    function (Component, $, placeOrder, fullScreenLoader, additionalValidators, creditCardData, validator, $t) {
+    function (Component, $, urlBuilder, verificationUrl, placeOrderAction, fullScreenLoader, additionalValidators) {
         'use strict';
 
         return Component.extend({
             defaults: {
-                template: 'Vendo_Gateway/payment/crypto'
+                template: 'Vendo_Gateway/payment/crypto',
             },
             redirectAfterPlaceOrder: true,
-            responseRedirectUrl: null,
 
-            afterPlaceOrder: function () {
-                try {
-                    var redirectUrl = $.cookie('vendo_verification_url');
-                    /*console.log(redirectUrl);*/
-                    if (redirectUrl !== 'null' && redirectUrl.length) {
-                        this.redirectAfterPlaceOrder = false;
-                        this.responseRedirectUrl = redirectUrl;
-                        var date = new Date();
-                        date.setTime(date.getTime() + (30 * 1000));
-                        $.cookie('vendo_verification_url', 'null',{ expires: date });
-                        window.location.replace(redirectUrl);
-                    }
-                } catch (error) {
-                    /*console.log(error);*/
-                }
-            },
-
-
-            /** @inheritdoc */
-            initObservable: function () {
-                this._super();
-
-                return this;
-            },
-
-            /**
-             * Init component
-             */
-            initialize: function () {
-                var self = this;
-
-                this._super();
-            },
-
-
-
-            getCode: function () {
+            getCode: function() {
                 return 'vendo_crypto';
             },
 
-            isActive: function () {
-                return true;
-            },
-
-            validate: function () {
-                var $form = $('#' + this.getCode() + '-form');
-                return $form.validation() && $form.validation('isValid');
-            },
-
-            getData: function () {
+            getData: function() {
                 return {
                     'method': this.item.method
                 };
             },
+
+            /**
+             * @return {jQuery}
+             */
+            validate: function () {
+                return additionalValidators.validate();
+            },
+
+            cryptoPlaceOrder: function()
+            {
+                var self = this;
+
+                if (self.validate())
+                {
+                    fullScreenLoader.startLoader();
+                    verificationUrl().then(function(response) {
+                        self.isPlaceOrderActionAllowed(true);
+                        self.getPlaceOrderDeferredObject()
+                            .done(
+                                function () {
+                                    window.location.href = response;
+                                }
+                            ).always(
+                            function () {
+                                self.isPlaceOrderActionAllowed(true);
+                            }
+                        );
+
+                    });
+                }
+
+                return false;
+            }
         });
     }
 );

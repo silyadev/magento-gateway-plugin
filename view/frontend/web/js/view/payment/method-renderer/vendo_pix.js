@@ -3,7 +3,7 @@ define(
         'Magento_Checkout/js/view/payment/default',
         'jquery',
         'Magento_Checkout/js/model/url-builder',
-        'Vendo_Gateway/js/action/get-verification-url',
+        'Vendo_Gateway/js/action/get-pix-verification-url',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/model/payment/additional-validators',

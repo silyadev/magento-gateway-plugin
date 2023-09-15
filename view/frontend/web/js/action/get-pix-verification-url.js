@@ -8,7 +8,7 @@ define(
 
         return function ()
         {
-            var serviceUrl = urlBuilder.createUrl('/vendo/payments/verification_url', {});
+            var serviceUrl = urlBuilder.createUrl('/vendo/payments/pix_verification_url', {});
 
             return storage.get(serviceUrl);
         };

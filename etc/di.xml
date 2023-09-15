@@ -77,6 +77,7 @@
         </arguments>
     </virtualType>
     <preference for="Vendo\Gateway\Api\PixServiceInterface" type="Vendo\Gateway\Model\PixService" />
+    <preference for="Vendo\Gateway\Api\CryptoServiceInterface" type="Vendo\Gateway\Model\CryptoService" />
     <virtualType name="CryptoFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
             <argument name="code" xsi:type="const">Vendo\Gateway\Model\Ui\Crypto\ConfigProvider::CODE</argument>

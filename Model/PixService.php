@@ -16,30 +16,23 @@ class PixService implements \Vendo\Gateway\Api\PixServiceInterface
     private $checkoutSession;
 
     /**
-     * @var \Magento\Framework\Locale\ResolverInterface
-     */
-    private $localeResolver;
-
-    /**
-     * @var \Vendo\Gateway\Gateway\Pix
-     */
-    private $paymentConfig;
-
-    /**
      * @var \Vendo\Gateway\Adapter\Pix
      */
     private $pixAdapter;
 
+    /**
+     * @var BasicService
+     */
+    private $service;
+
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Vendo\Gateway\Gateway\Pix $paymentConfig,
-        \Vendo\Gateway\Adapter\Pix $pixAdapter
+        \Vendo\Gateway\Adapter\Pix $pixAdapter,
+        BasicService $service
     ) {
         $this->checkoutSession = $checkoutSession;
-        $this->localeResolver = $localeResolver;
-        $this->paymentConfig = $paymentConfig;
         $this->pixAdapter = $pixAdapter;
+        $this->service = $service;
     }
 
     /**
@@ -49,65 +42,10 @@ class PixService implements \Vendo\Gateway\Api\PixServiceInterface
     {
         $quote = $this->checkoutSession->getQuote();
         $quote->reserveOrderId();
-
-        $quoteItems = $quote->getItems();
-        $items = [];
-
-        foreach ($quoteItems as $quoteItem) {
-            if ($quoteItem->getParentItem()) {
-                continue;
-            }
-            $items[] = [
-                'item_id' => $quoteItem->getSku(),
-                'item_description' => $quoteItem->getName(),
-                'item_price' => $quoteItem->getPrice(),
-                'item_quantity' => $quoteItem->getQty()
-            ];
-        }
-
-        $billingAddress = $quote->getBillingAddress();
-        $shippingAddress = $quote->getShippingAddress();
-        $storeId = $quote->getStoreId();
-
-        $params = [
-            'external_references' => [
-                'transaction_reference' => $quote->getReservedOrderId()
-            ],
-            'items' => $items,
-            'payment_details' => ['payment_method' => 'pix'],
-            'customer_details' => [
-                'first_name' => $billingAddress->getFirstname(),
-                'last_name' => $billingAddress->getLastname(),
-                'language' => strstr($this->localeResolver->getLocale(), '_', true),
-                'address' => implode(' ', $billingAddress->getStreet()),
-                'country' => $billingAddress->getCountryId(),
-                'postal_code' => $billingAddress->getPostcode(),
-                'email' => $billingAddress->getEmail(),
-                'phone' => $billingAddress->getTelephone(),
-                'national_identifier' => $quote->getPayment()->getAdditionalInformation('national_identifier')
-            ],
-            'shipping_address' => [
-                'first_name' => $shippingAddress->getFirstname(),
-                'last_name' => $shippingAddress->getLastname(),
-                'address' => implode(' ', $shippingAddress->getStreet()),
-                'country' => $shippingAddress->getCountryId(),
-                'postal_code' => $shippingAddress->getPostcode(),
-                'phone' => $shippingAddress->getTelephone(),
-                'city' => $shippingAddress->getCity(),
-                'state' => $shippingAddress->getRegionCode()
-            ],
-            'request_details' => [
-                'ip_address' => $quote->getRemoteIp(),
-                'browser_user_agent' => $_SERVER["HTTP_USER_AGENT"]
-            ],
-            'amount' => $quote->getGrandTotal(),
-            'currency' => $quote->getCurrency()->getQuoteCurrencyCode(),
-            'merchant_id' => $this->paymentConfig->getMerchantId($storeId),
-            'site_id' => $this->paymentConfig->getSiteId($storeId),
-            'api_secret' => $this->paymentConfig->getApiSecret($storeId),
-            'is_test' => $this->paymentConfig->getIsTestMode($storeId),
-            'success_url' => $this->paymentConfig->getSuccessUrl()
-        ];
+        $params = $this->service->getBaseVerificationUrlRequestData($quote);
+        $params['payment_details'] = ['payment_method' => 'pix'];
+        $params['customer_details']['national_identifier'] =
+            $quote->getPayment()->getAdditionalInformation('national_identifier');
 
         $response = $this->pixAdapter->authorize($params);
 
