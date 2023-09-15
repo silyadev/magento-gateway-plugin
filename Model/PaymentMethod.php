@@ -40,6 +40,7 @@ class PaymentMethod extends Cc
     const PAYMENT_RESPONSE_STATUS_USE_IN_CRON = 2;
     const PAYMENT_RESPONSE_STATUS_USED_IN_CRON_SUCCESS = 3;
     const PAYMENT_RESPONSE_STATUS_USED_IN_VENDO_CAPTURE_SUCCESS = 4;
+    const PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON_SET_IN_S2S = 5;
 
     protected $_code = self::CODE;
 
@@ -385,7 +386,7 @@ class PaymentMethod extends Cc
         $request = $this->_addRequestOrderInfo($request, $payment->getOrder());
 
         $this->vendoHelpers->log('API Endpoint: ' . self::TRANSACTION_URL);
-        $this->vendoHelpers->log('API json: ' . json_encode($this->vendoHelpers->obfuscateRequest($request->getData())));
+        $this->vendoHelpers->log('API json: ' . json_encode($this->vendoHelpers->c($request->getData())));
 
         $response = $this->_vendoGateway->postRequest($request, self::TRANSACTION_URL);
 
