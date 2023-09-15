@@ -20,6 +20,10 @@ define(
             {
                 type: 'vendo_pix',
                 component: 'Vendo_Gateway/js/view/payment/method-renderer/vendo_pix'
+            },
+            {
+                type: 'vendo_crypto',
+                component: 'Vendo_Gateway/js/view/payment/method-renderer/vendo_crypto'
             }
         );
         return Component.extend({});

@@ -77,4 +77,55 @@
         </arguments>
     </virtualType>
     <preference for="Vendo\Gateway\Api\PixServiceInterface" type="Vendo\Gateway\Model\PixService" />
+    <virtualType name="CryptoFacade" type="Magento\Payment\Model\Method\Adapter">
+        <arguments>
+            <argument name="code" xsi:type="const">Vendo\Gateway\Model\Ui\Crypto\ConfigProvider::CODE</argument>
+            <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
+            <argument name="infoBlockType" xsi:type="string">Magento\Payment\Block\ConfigurableInfo</argument>
+            <argument name="valueHandlerPool" xsi:type="object">CryptoValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">CryptoValidatorPool</argument>
+            <argument name="commandPool" xsi:type="object">CryptoCommandPool</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CryptoValueHandlerPool" type="Magento\Payment\Gateway\Config\ValueHandlerPool">
+        <arguments>
+            <argument name="handlers" xsi:type="array">
+                <item name="default" xsi:type="string">CryptoConfigValueHandler</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CryptoConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
+        <arguments>
+            <argument name="configInterface" xsi:type="object">Vendo\Gateway\Gateway\Crypto</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CryptoValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="availability" xsi:type="string">Vendo\Gateway\Gateway\Validator\Crypto\AvailabilityValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CryptoCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="authorize" xsi:type="string">CryptoAuthorizeCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CryptoAuthorizeCommand" type="Magento\Payment\Gateway\Command\GatewayCommand">
+        <arguments>
+            <argument name="requestBuilder" xsi:type="object">CryptoAuthorizeRequest</argument>
+            <argument name="transferFactory" xsi:type="object">Vendo\Gateway\Gateway\Http\TransferFactory</argument>
+            <argument name="client" xsi:type="object">Vendo\Gateway\Gateway\Http\Client\Authorize</argument>
+            <argument name="handler" xsi:type="object">Vendo\Gateway\Gateway\Handler\CryptoAuthorizeResponseHandler</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="CryptoAuthorizeRequest" type="Magento\Payment\Gateway\Request\BuilderComposite">
+        <arguments>
+            <argument name="builders" xsi:type="array">
+                <item name="authorize" xsi:type="string">Vendo\Gateway\Request\Crypto\AuthorizeRequestBuilder</item>
+            </argument>
+        </arguments>
+    </virtualType>
 </config>

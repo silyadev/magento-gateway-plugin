@@ -53,7 +53,7 @@ class AuthorizeRequestBuilder implements BuilderInterface
                 'transaction_reference' => $order->getOrderIncrementId()
             ],
             'items' => $items,
-            'payment_details' => ['payment_method' => 'pix'],
+            'payment_details' => ['payment_method' => 'crypto'],
             'customer_details' => [
                 'first_name' => $billingAddress->getFirstname(),
                 'last_name' => $billingAddress->getLastname(),

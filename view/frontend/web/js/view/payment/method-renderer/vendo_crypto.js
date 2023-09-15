@@ -16,9 +16,7 @@ define(
 
         return Component.extend({
             defaults: {
-                template: 'Vendo_Gateway/payment/sepa',
-                iban: '',
-                bic_swift: ''
+                template: 'Vendo_Gateway/payment/crypto'
             },
             redirectAfterPlaceOrder: true,
             responseRedirectUrl: null,
@@ -43,11 +41,7 @@ define(
 
             /** @inheritdoc */
             initObservable: function () {
-                this._super()
-                    .observe([
-                        'iban',
-                        'bic_swift'
-                    ]);
+                this._super();
 
                 return this;
             },
@@ -59,20 +53,12 @@ define(
                 var self = this;
 
                 this._super();
-
-                this.iban.subscribe(function (value) {
-                    creditCardData.iban = value;
-                });
-
-                this.bic_swift.subscribe(function (value) {
-                    creditCardData.bic_swift = value;
-                });
             },
 
 
 
             getCode: function () {
-                return 'vendo_sepa';
+                return 'vendo_crypto';
             },
 
             isActive: function () {
@@ -86,12 +72,7 @@ define(
 
             getData: function () {
                 return {
-                    'method': this.item.method,
-                    'additional_data': {
-                        'sepa_iban': this.iban(),
-                        'sepa_bic_swift': this.bic_swift(),
-
-                    }
+                    'method': this.item.method
                 };
             },
         });

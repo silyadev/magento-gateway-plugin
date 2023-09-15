@@ -5,10 +5,10 @@ namespace Vendo\Gateway\Model;
 use Vendo\Gateway\Api\PixServiceInterface;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\Locale\ResolverInterface;
-use Vendo\Gateway\Gateway\Pix;
+use Vendo\Gateway\Gateway\Crypto;
 use Vendo\Gateway\Adapter\Pix as PixAdapter;
 
-class PixService implements \Vendo\Gateway\Api\PixServiceInterface
+class CryptoService implements \Vendo\Gateway\Api\PixServiceInterface
 {
     /**
      * @var \Magento\Checkout\Model\Session
@@ -21,7 +21,7 @@ class PixService implements \Vendo\Gateway\Api\PixServiceInterface
     private $localeResolver;
 
     /**
-     * @var \Vendo\Gateway\Gateway\Pix
+     * @var \Vendo\Gateway\Gateway\Crypto
      */
     private $paymentConfig;
 
@@ -33,7 +33,7 @@ class PixService implements \Vendo\Gateway\Api\PixServiceInterface
     public function __construct(
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Locale\ResolverInterface $localeResolver,
-        \Vendo\Gateway\Gateway\Pix $paymentConfig,
+        \Vendo\Gateway\Gateway\Crypto $paymentConfig,
         \Vendo\Gateway\Adapter\Pix $pixAdapter
     ) {
         $this->checkoutSession = $checkoutSession;
@@ -73,7 +73,7 @@ class PixService implements \Vendo\Gateway\Api\PixServiceInterface
                 'transaction_reference' => $order->getIncrementId()
             ],
             'items' => $items,
-            'payment_details' => ['payment_method' => 'pix'],
+            'payment_details' => ['payment_method' => 'crypto'],
             'customer_details' => [
                 'first_name' => $billingAddress->getFirstname(),
                 'last_name' => $billingAddress->getLastname(),

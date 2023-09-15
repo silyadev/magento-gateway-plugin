@@ -1,20 +1,20 @@
 <?php
 
-namespace Vendo\Gateway\Model\Ui\Pix;
+namespace Vendo\Gateway\Model\Ui\Crypto;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Vendo\Gateway\Gateway\Pix;
+use Vendo\Gateway\Gateway\Crypto;
 
 class ConfigProvider implements ConfigProviderInterface
 {
-    public const CODE = 'vendo_pix';
+    public const CODE = 'vendo_crypto';
 
     /**
-     * @var Pix
+     * @var Crypto
      */
     private $config;
 
-    public function __construct(Pix $config)
+    public function __construct(Crypto $config)
     {
         $this->config = $config;
     }

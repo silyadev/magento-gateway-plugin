@@ -13,6 +13,9 @@
             <argument name="configProviders" xsi:type="array">
                 <item name="vendo_pix_config" xsi:type="object">Vendo\Gateway\Model\Ui\Pix\ConfigProvider</item>
             </argument>
+            <argument name="configProviders" xsi:type="array">
+                <item name="vendo_crypto_config" xsi:type="object">Vendo\Gateway\Model\Ui\Crypto\ConfigProvider</item>
+            </argument>
         </arguments>
     </type>
     <type name="Vendo\Gateway\Model\PaymentMethod">
