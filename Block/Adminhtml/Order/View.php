@@ -53,7 +53,7 @@ class View extends MagentoSalesOrderView
         \Magento\Sales\Helper\Reorder         $reorderHelper,
         PaymentMethod                         $paymentMethod,
         StoreManagerInterface                 $storeManager,
-        array                                 $data = [],
+        array                                 $data = []
     )
     {
         $this->_reorderHelper = $reorderHelper;

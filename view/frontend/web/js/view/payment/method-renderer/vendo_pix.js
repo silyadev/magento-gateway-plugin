@@ -4,9 +4,11 @@ define(
         'jquery',
         'Magento_Checkout/js/model/url-builder',
         'Vendo_Gateway/js/action/get-verification-url',
+        'Magento_Checkout/js/action/place-order',
+        'Magento_Checkout/js/model/full-screen-loader',
         'mage/validation'
     ],
-    function (Component, $, urlBuilder, verificationUrl) {
+    function (Component, $, urlBuilder, verificationUrl, placeOrderAction, fullScreenLoader) {
         'use strict';
 
         return Component.extend({
@@ -51,13 +53,25 @@ define(
 
                 if (self.validate())
                 {
+                    fullScreenLoader.startLoader();
                     verificationUrl().then(function(response) {
-                        window.location.href = response;
-                    }, self.placeOrder.bind(self));
+                        self.isPlaceOrderActionAllowed(true);
+                        self.getPlaceOrderDeferredObject()
+                            .done(
+                                function () {
+                                    window.location.href = response;
+                                }
+                            ).always(
+                            function () {
+                                self.isPlaceOrderActionAllowed(true);
+                            }
+                        );
+
+                    });
                 }
 
                 return false;
-            },
+            }
         });
     }
 );

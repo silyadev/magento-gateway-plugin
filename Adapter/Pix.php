@@ -1,10 +1,10 @@
 <?php
 
 namespace Vendo\Gateway\Adapter;
-namespace Vendo\Gateway\Gateway;
 
 use Magento\Framework\HTTP\Client\Curl;
 use Magento\Framework\Serialize\Serializer\Json;
+use Vendo\Gateway\Gateway\Vendo;
 
 class Pix
 {
@@ -22,7 +22,11 @@ class Pix
     public function authorize(array $request): array
     {
         $curlRequest = $this->curlClient;
-        $curlRequest->setHeaders(['content-type' => 'application/json', 'accept' => 'application/json', "X-VENDOGWAPI_PLUGIN" => Vendo::VENDO_MODULE_VERSION]);
+        $curlRequest->setHeaders([
+            'content-type' => 'application/json',
+            'accept' => 'application/json',
+            "X-VENDOGWAPI_PLUGIN" => Vendo::VENDO_MODULE_VERSION
+        ]);
         $curlRequest->post(self::PAYMENT_REQUEST_URI, $this->jsonSerializer->serialize($request));
 
         return $this->jsonSerializer->unserialize($curlRequest->getBody());

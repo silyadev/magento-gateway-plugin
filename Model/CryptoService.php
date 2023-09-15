@@ -47,7 +47,7 @@ class CryptoService implements \Vendo\Gateway\Api\PixServiceInterface
      */
     public function getVerificationUrl(): string
     {
-        $order = $this->checkoutSession->getLastRealOrder();
+        $order = $this->checkoutSession->getQuote();
 
         $orderItems = $order->getItems();
         $items = [];
@@ -70,7 +70,7 @@ class CryptoService implements \Vendo\Gateway\Api\PixServiceInterface
 
         $params = [
             'external_references' => [
-                'transaction_reference' => $order->getIncrementId()
+                'transaction_reference' => $order->getReservedOrderId()
             ],
             'items' => $items,
             'payment_details' => ['payment_method' => 'crypto'],
@@ -100,7 +100,7 @@ class CryptoService implements \Vendo\Gateway\Api\PixServiceInterface
                 'browser_user_agent' => $_SERVER["HTTP_USER_AGENT"]
             ],
             'amount' => $order->getGrandTotal(),
-            'currency' => $order->getOrderCurrency()->getCode(),
+            'currency' => $order->getCurrency()->getQuoteCurrencyCode(),
             'merchant_id' => $this->paymentConfig->getMerchantId($storeId),
             'site_id' => $this->paymentConfig->getSiteId($storeId),
             'api_secret' => $this->paymentConfig->getApiSecret($storeId),

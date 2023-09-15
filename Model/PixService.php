@@ -47,30 +47,31 @@ class PixService implements \Vendo\Gateway\Api\PixServiceInterface
      */
     public function getVerificationUrl(): string
     {
-        $order = $this->checkoutSession->getLastRealOrder();
+        $quote = $this->checkoutSession->getQuote();
+        $quote->reserveOrderId();
 
-        $orderItems = $order->getItems();
+        $quoteItems = $quote->getItems();
         $items = [];
 
-        foreach ($orderItems as $orderItem) {
-            if ($orderItem->getParentItem()) {
+        foreach ($quoteItems as $quoteItem) {
+            if ($quoteItem->getParentItem()) {
                 continue;
             }
             $items[] = [
-                'item_id' => $orderItem->getSku(),
-                'item_description' => $orderItem->getName(),
-                'item_price' => $orderItem->getPrice(),
-                'item_quantity' => $orderItem->getQtyOrdered()
+                'item_id' => $quoteItem->getSku(),
+                'item_description' => $quoteItem->getName(),
+                'item_price' => $quoteItem->getPrice(),
+                'item_quantity' => $quoteItem->getQty()
             ];
         }
 
-        $billingAddress = $order->getBillingAddress();
-        $shippingAddress = $order->getShippingAddress();
-        $storeId = $order->getStoreId();
+        $billingAddress = $quote->getBillingAddress();
+        $shippingAddress = $quote->getShippingAddress();
+        $storeId = $quote->getStoreId();
 
         $params = [
             'external_references' => [
-                'transaction_reference' => $order->getIncrementId()
+                'transaction_reference' => $quote->getReservedOrderId()
             ],
             'items' => $items,
             'payment_details' => ['payment_method' => 'pix'],
@@ -83,7 +84,7 @@ class PixService implements \Vendo\Gateway\Api\PixServiceInterface
                 'postal_code' => $billingAddress->getPostcode(),
                 'email' => $billingAddress->getEmail(),
                 'phone' => $billingAddress->getTelephone(),
-                'national_identifier' => $order->getPayment()->getAdditionalInformation('national_identifier')
+                'national_identifier' => $quote->getPayment()->getAdditionalInformation('national_identifier')
             ],
             'shipping_address' => [
                 'first_name' => $shippingAddress->getFirstname(),
@@ -96,11 +97,11 @@ class PixService implements \Vendo\Gateway\Api\PixServiceInterface
                 'state' => $shippingAddress->getRegionCode()
             ],
             'request_details' => [
-                'ip_address' => $order->getRemoteIp(),
+                'ip_address' => $quote->getRemoteIp(),
                 'browser_user_agent' => $_SERVER["HTTP_USER_AGENT"]
             ],
-            'amount' => $order->getGrandTotal(),
-            'currency' => $order->getOrderCurrency()->getCode(),
+            'amount' => $quote->getGrandTotal(),
+            'currency' => $quote->getCurrency()->getQuoteCurrencyCode(),
             'merchant_id' => $this->paymentConfig->getMerchantId($storeId),
             'site_id' => $this->paymentConfig->getSiteId($storeId),
             'api_secret' => $this->paymentConfig->getApiSecret($storeId),
