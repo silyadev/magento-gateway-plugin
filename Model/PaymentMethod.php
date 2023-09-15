@@ -386,7 +386,7 @@ class PaymentMethod extends Cc
         $request = $this->_addRequestOrderInfo($request, $payment->getOrder());
 
         $this->vendoHelpers->log('API Endpoint: ' . self::TRANSACTION_URL);
-        $this->vendoHelpers->log('API json: ' . json_encode($this->vendoHelpers->obfuscateRequest($request->getData())));
+        $this->vendoHelpers->log('API json: ' . json_encode($this->vendoHelpers->c($request->getData())));
 
         $response = $this->_vendoGateway->postRequest($request, self::TRANSACTION_URL);
 

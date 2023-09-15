@@ -221,6 +221,7 @@ class Sepa extends PaymentMethod
     }
 
 
+
     /**
      * Return request object with basic information Of Card Details
      *
