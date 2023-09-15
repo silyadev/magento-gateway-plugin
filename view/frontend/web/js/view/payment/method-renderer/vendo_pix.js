@@ -6,9 +6,10 @@ define(
         'Vendo_Gateway/js/action/get-verification-url',
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/full-screen-loader',
+        'Magento_Checkout/js/model/payment/additional-validators',
         'mage/validation'
     ],
-    function (Component, $, urlBuilder, verificationUrl, placeOrderAction, fullScreenLoader) {
+    function (Component, $, urlBuilder, verificationUrl, placeOrderAction, fullScreenLoader, additionalValidators) {
         'use strict';
 
         return Component.extend({
@@ -44,7 +45,7 @@ define(
             validate: function () {
                 var form = 'form[data-role=vendo_pix-form]';
 
-                return $(form).validation() && $(form).validation('isValid');
+                return $(form).validation() && $(form).validation('isValid') && additionalValidators.validate();
             },
 
             pixPlaceOrder: function()
