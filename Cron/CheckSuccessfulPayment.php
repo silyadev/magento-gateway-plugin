@@ -56,7 +56,7 @@ class CheckSuccessfulPayment
         ResourceConnection       $resourceConnection,
         Vendo                    $vendoGateway,
         PaymentMethod            $paymentMethod,
-        OrderRepositoryInterface $orderRepository,
+        OrderRepositoryInterface $orderRepository
     )
     {
         $this->vendoHelpers = $vendoHelpers;
