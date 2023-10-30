@@ -3,12 +3,93 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <section id="payment">
-            <group id="vendo_payment" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1"
+            <group id="vendo_generic_configuration" translate="label" sortOrder="90" showInDefault="1" showInWebsite="1"
                    showInStore="1">
-                <label>Vendo Gateway</label>
+                <label>Vendo Generic Configuration</label>
                 <field id="active" translate="label comment" sortOrder="10" type="select" showInDefault="1"
                        showInWebsite="1" showInStore="0">
                     <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="merchant_id" translate="label" sortOrder="20" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Merchant ID</label>
+                    <comment>Your Vendo Merchant ID. This will be provided by your account manager.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="site_id" translate="label" sortOrder="30" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Site ID</label>
+                    <comment>Your Vendo Site ID</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="is_test" translate="label comment" sortOrder="40" type="select" showInDefault="1"
+                       showInWebsite="1" showInStore="0">
+                    <label>Test Mode</label>
+                    <comment>Enables Vendo Gateway Test Mode. No real transactions will be processed if you check this
+                        on.
+                    </comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="api_secret_tests" type="obscure" translate="label comment" sortOrder="50" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>API Secret for Test transactions</label>
+                    <comment>Only used if Test Mode is enabled.</comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="is_test">1</field>
+                    </depends>
+                </field>
+                <field id="api_secret" type="obscure" translate="label comment" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Secret for Real transactions</label>
+                    <comment>Used when Test mode is disabled.</comment>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="is_test">0</field>
+                    </depends>
+                </field>
+                <field id="is_debug" translate="label comment" sortOrder="70" type="select" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Debug</label>
+                    <comment>This mode includes additional features.</comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="success_url" translate="label" sortOrder="80" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Success URL</label>
+                    <comment>Redirect to url. Used 3D Secure. Example: https://example.com/vendo/success</comment>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="is_debug">1</field>
+                    </depends>
+                </field>
+                <field id="postback_url" translate="label" sortOrder="90" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Postback URL</label>
+                    <comment>Redirect to url. Example: https://example.com/vendo/verification</comment>
+                    <depends>
+                        <field id="active">1</field>
+                        <field id="is_debug">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="vendo_payment" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1"
+                   showInStore="1">
+                <label>Vendo Card Payments</label>
+                <field id="active" translate="label comment" sortOrder="10" type="select" showInDefault="1"
+                       showInWebsite="1" showInStore="0">
+                    <label>Enable Card Payments</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="method_title" translate="label comment" sortOrder="20" showInDefault="1" showInWebsite="1"
@@ -27,59 +108,7 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="merchant_id" translate="label" sortOrder="40" showInDefault="1" showInWebsite="1"
-                       showInStore="1">
-                    <label>Merchant ID</label>
-                    <comment>Your Vendo Merchant ID. This will be provided by your account manager.</comment>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="site_id" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1"
-                       showInStore="1">
-                    <label>Site ID</label>
-                    <comment>Your Vendo Site ID</comment>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="api_secret" type="obscure" translate="label comment" sortOrder="60" showInDefault="1" showInWebsite="1"
-                       showInStore="1">
-                    <label>Vendo API Secret</label>
-                    <comment>Vendo Gateway API Secret for real transactions.</comment>
-                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="is_test">0</field>
-                    </depends>
-                </field>
-                <field id="api_secret_tests" type="obscure" translate="label comment" sortOrder="70" showInDefault="1" showInWebsite="1"
-                       showInStore="1">
-                    <label>Vendo API Secret for tests</label>
-                    <comment>Vendo Gateway API Secret for test transactions (only used if Vendo Test Mode is enabled)</comment>
-                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                    <depends>
-                        <field id="active">1</field>
-                        <field id="is_test">1</field>
-                    </depends>
-                </field>
-                <field id="is_test" translate="label comment" sortOrder="80" type="select" showInDefault="1"
-                       showInWebsite="1" showInStore="0">
-                    <label>Test Mode</label>
-                    <comment>Enables Vendo Gateway Test Mode. No real transactions will be processed if you check this on.</comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="success_url" translate="label" sortOrder="55" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Success Url</label>
-                    <comment>Vendo Redirect To Success Url (Used 3D Secure)</comment>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="preauth_only" translate="label" sortOrder="56" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="preauth_only" translate="label" sortOrder="40" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Pre-Authorization Only</label>
                     <comment>'No' => Auto: preauth and capture happens in the same request. 'Yes' => Manual: preauth is done on the
                         first request and capture is manually triggered on a new request, param 'preauth_only'.
@@ -89,33 +118,33 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="cc_types" translate="label" type="multiselect" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="cc_types" translate="label" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Credit Card Types</label>
                     <source_model>Magento\Payment\Model\Source\Cctype</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Payment from Applicable Countries</label> <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment From Applicable Countries</label> <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="specificcountry" translate="label" type="multiselect" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Payment from Specific Countries</label> <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                <field id="specificcountry" translate="label" type="multiselect" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment From Specific Countries</label> <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="min_order_total" translate="label comment" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="min_order_total" translate="label comment" type="text" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Minimum Order Total</label>
                     <comment>Leave empty to disable limit</comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="max_order_total" translate="label comment" type="text" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="0">
+                <field id="max_order_total" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Maximum Order Total</label>
                     <comment>Leave empty to disable limit</comment>
                     <depends>
@@ -125,10 +154,10 @@
             </group>
             <group id="vendo_sepa" translate="label" sortOrder="110" showInDefault="1" showInWebsite="1"
                    showInStore="1">
-                <label>Vendo Gateway SEPA (EU direct debit)</label>
+                <label>Vendo SEPA Payments (EU only)</label>
                 <field id="active" translate="label comment" sortOrder="10" type="select" showInDefault="1"
                        showInWebsite="1" showInStore="0">
-                    <label>Enable SEPA</label>
+                    <label>Enable SEPA Payments</label>
                     <comment>Please make sure Vendo Gateway is configured. SEPA will be active only if Vendo site id, merchant id, keys is configured and enabled.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -140,31 +169,22 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="success_url" translate="label" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Success Url</label>
-                    <comment>Vendo Redirect To Success Url (Used 3D Secure)[SEPA]</comment>
+                <field id="method_description" translate="label comment" sortOrder="30" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Description</label>
+                    <comment>The description that the user sees in the checkout process.</comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="preauth_only" translate="label" sortOrder="26" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Pre-Authorization Only</label>
-                    <comment>'No' => Auto: preauth and capture happens in the same request. 'Yes' => Manual: preauth is done on the
-                        first request and capture is manually triggered on a new request, param 'preauth_only'.
-                    </comment>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment From Applicable Countries</label> <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
                 </field>
-                <field id="allowspecific" translate="label" type="allowspecific" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Payment from Applicable Countries</label> <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
-                    <depends>
-                        <field id="active">1</field>
-                    </depends>
-                </field>
-                <field id="specificcountry" translate="label" type="multiselect" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="0">
-                    <label>Payment from Specific Countries</label> <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+                <field id="specificcountry" translate="label" type="multiselect" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Payment From Specific Countries</label> <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <depends>
                         <field id="active">1</field>
                     </depends>
@@ -172,10 +192,10 @@
             </group>
             <group id="vendo_pix" translate="label" sortOrder="120" showInDefault="1" showInWebsite="1"
                    showInStore="1">
-                <label>PIX (Brazil only)</label>
+                <label>Vendo PIX Payments (Brazil only)</label>
                 <field id="active" translate="label comment" sortOrder="10" type="select" showInDefault="1"
                        showInWebsite="1" showInStore="0">
-                    <label>Enable PIX</label>
+                    <label>Enable PIX Payments</label>
                     <comment>Please make sure Vendo Gateway is configured. PIX will be active only if Vendo site id, merchant id, keys is configured and enabled.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -187,13 +207,21 @@
                         <field id="active">1</field>
                     </depends>
                 </field>
+                <field id="method_description" translate="label comment" sortOrder="30" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Description</label>
+                    <comment>The description that the user sees in the checkout process.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
             </group>
-            <group id="vendo_crypto" translate="label" sortOrder="120" showInDefault="1" showInWebsite="1"
+            <group id="vendo_crypto" translate="label" sortOrder="130" showInDefault="1" showInWebsite="1"
                    showInStore="1">
-                <label>Pay with Cryptocurrency</label>
+                <label>Vendo Cryptocurrency Payments</label>
                 <field id="active" translate="label comment" sortOrder="10" type="select" showInDefault="1"
                        showInWebsite="1" showInStore="0">
-                    <label>Enable Cryptocurrency</label>
+                    <label>Enable Cryptocurrency Payments</label>
                     <comment>Please make sure Vendo Gateway is configured. "PAy with Cryptocurrency" will be active only if Vendo site id, merchant id, keys is configured and enabled.</comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -201,6 +229,14 @@
                        showInStore="1">
                     <label>Title</label>
                     <comment>The title that the user sees in the checkout process.</comment>
+                    <depends>
+                        <field id="active">1</field>
+                    </depends>
+                </field>
+                <field id="method_description" translate="label comment" sortOrder="30" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Description</label>
+                    <comment>The description that the user sees in the checkout process.</comment>
                     <depends>
                         <field id="active">1</field>
                     </depends>

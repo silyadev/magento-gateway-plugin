@@ -14,5 +14,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 class Config extends \Magento\Payment\Gateway\Config\Config
 {
     const METHOD = 'vendo_payment';
+    const VENDO_GENERIC_CONFIGURATION = 'vendo_generic_configuration';
 
 }

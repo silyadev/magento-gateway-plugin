@@ -60,7 +60,10 @@ class Index extends \Magento\Framework\App\Action\Action
         // Add data to log.
         $this->vendoHelpers->log('Vendo Request Params (S2S): ' . json_encode($params), LogLevel::DEBUG);
 
-        if (!empty($params['callback']) && $params['callback'] == 'verification') {
+        // Default value
+        $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . __('ERROR: #0001 not request params') . '</errorMessage>'; // Response ERROR
+
+        if ((!empty($params['callback']) && $params['callback'] == 'verification') || (!empty($params['callback']) && $params['callback'] == 'transaction') ) {
             if (!empty($params['transaction_id']) && !empty($params['merchant_reference'])) { // Order ID
                 if (isset($params['status']) || isset($params['is_test'])) {
 

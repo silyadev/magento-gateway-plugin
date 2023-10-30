@@ -7,6 +7,7 @@ use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Payment\Gateway\Config\Config;
 use Magento\Store\Model\ScopeInterface;
+use Vendo\Gateway\Gateway\Config as VendoGatewayConfig;
 use Vendo\Gateway\Model\PaymentMethod;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\UrlInterface;
@@ -74,7 +75,7 @@ class Pix extends Config
     public function getMerchantId(int $storeId = null): string
     {
         return (string)$this->scopeConfig->getValue(
-            'payment/' . PaymentMethod::CODE . '/merchant_id',
+            'payment/' . VendoGatewayConfig::VENDO_GENERIC_CONFIGURATION . '/merchant_id',
             ScopeInterface::SCOPE_STORE,
             $storeId ?? $this->storeConfigResolver->getStoreId()
         );
@@ -83,7 +84,7 @@ class Pix extends Config
     public function getSiteId(int $storeId = null): string
     {
         return (string)$this->scopeConfig->getValue(
-            'payment/' . PaymentMethod::CODE . '/site_id',
+            'payment/' . VendoGatewayConfig::VENDO_GENERIC_CONFIGURATION . '/site_id',
             ScopeInterface::SCOPE_STORE,
             $storeId ?? $this->storeConfigResolver->getStoreId()
         );
@@ -92,7 +93,7 @@ class Pix extends Config
     public function getIsTestMode(int $storeId = null): bool
     {
         return $this->scopeConfig->isSetFlag(
-            'payment/' . PaymentMethod::CODE . '/is_test',
+            'payment/' . VendoGatewayConfig::VENDO_GENERIC_CONFIGURATION . '/is_test',
             ScopeInterface::SCOPE_STORE,
             $storeId ?? $this->storeConfigResolver->getStoreId()
         );
@@ -101,9 +102,9 @@ class Pix extends Config
     public function getApiSecret(int $storeId = null): string
     {
         if (!$this->getIsTestMode($storeId)) {
-            $path = 'payment/' . PaymentMethod::CODE . '/api_secret';
+            $path = 'payment/' . VendoGatewayConfig::VENDO_GENERIC_CONFIGURATION . '/api_secret';
         } else {
-            $path = 'payment/' . PaymentMethod::CODE . '/api_secret_tests';
+            $path = 'payment/' . VendoGatewayConfig::VENDO_GENERIC_CONFIGURATION . '/api_secret_tests';
         }
 
         return (string)$this->encryptor->decrypt($this->scopeConfig->getValue(

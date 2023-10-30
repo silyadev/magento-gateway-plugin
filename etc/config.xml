@@ -3,18 +3,24 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <payment>
-            <vendo_payment>
+            <vendo_generic_configuration>
                 <active>0</active>
                 <model>Vendo\Gateway\Model\PaymentMethod</model>
                 <title>Vendo Gateway</title>
                 <is_test>1</is_test>
+                <is_debug>0</is_debug>
+            </vendo_generic_configuration>
+            <vendo_payment>
+                <active>0</active>
+                <model>Vendo\Gateway\Model\PaymentMethod</model>
+                <title>Vendo Card Payments</title>
+                <method_description>Vendo accepts the major credit cards and debit cards brands.</method_description>
                 <preauth_only>0</preauth_only>
                 <cctypes>CUP,AE,VI,MC,DI,JCB,DN,MI</cctypes>
                 <useccv>1</useccv>
                 <group>vendo</group>
-                <method_title>Pay with credit card or debit card</method_title>
+                <method_title>Vendo Card Payments: Pay with credit card or debit card</method_title>
                 <can_use_checkout>1</can_use_checkout>
-                <method_description>Vendo accepts the major credit cards and debit cards brands.</method_description>
                 <payment_action>authorize_capture</payment_action>
             </vendo_payment>
             <vendo_sepa>
@@ -26,8 +32,10 @@
                 <allowspecific>0</allowspecific>
                 <group>vendo</group>
                 <method_title>SEPA (EU direct debit)</method_title>
+                <method_description>SEPA description that the user sees in the checkout process.</method_description>
                 <can_use_checkout>1</can_use_checkout>
                 <payment_action>authorize_capture</payment_action>
+                <specificcountry>DE,AT,BG,HR,EE,LV,BE,RO,SI,IT,MT,LT,MC,NO,SE,PL,HU,GR,IE,LU,CY,CZ,IS,DK</specificcountry>
             </vendo_sepa>
             <vendo_pix>
                 <active>0</active>
@@ -35,6 +43,7 @@
                 <is_gateway>1</is_gateway>
                 <can_use_internal>1</can_use_internal>
                 <title>PIX (Brazil only)</title>
+                <method_description>PIX description that the user sees in the checkout process.</method_description>
                 <group>vendo</group>
                 <can_use_checkout>1</can_use_checkout>
                 <allowspecific>1</allowspecific>
@@ -53,6 +62,7 @@
                 <is_gateway>1</is_gateway>
                 <can_use_internal>1</can_use_internal>
                 <title>Pay with cryptocurrency</title>
+                <method_description>Cryptocurrency description that the user sees in the checkout process.</method_description>
                 <group>vendo</group>
                 <can_use_checkout>1</can_use_checkout>
                 <order_status>processing</order_status>

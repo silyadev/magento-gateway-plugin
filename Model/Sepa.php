@@ -30,6 +30,7 @@ use Magento\Vault\Api\Data\PaymentTokenFactoryInterface;
 use Magento\Vault\Api\Data\PaymentTokenInterface;
 use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
 use Magento\Framework\Stdlib\CookieManagerInterface;
+use Vendo\Gateway\Gateway\Config as VendoGatewayConfig;
 use Vendo\Gateway\Gateway\Vendo;
 use Magento\Checkout\Model\Session;
 use Magento\Vault\Api\PaymentTokenRepositoryInterface;
@@ -489,7 +490,7 @@ class Sepa extends PaymentMethod
             $storeId = $this->getStore();
         }
         if ($fromParentMethod) {
-            $path = 'payment/' . PaymentMethod::CODE . '/' . $field;
+            $path = 'payment/' . VendoGatewayConfig::VENDO_GENERIC_CONFIGURATION . '/' . $field;
         } else {
             $path = 'payment/' . $this->getCode() . '/' . $field;
         }

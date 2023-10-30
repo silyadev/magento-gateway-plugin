@@ -44,9 +44,14 @@ class BasicService
         $shippingAddress = $quote->getShippingAddress();
         $storeId = $quote->getStoreId();
 
+        $orderIncrementId = 0;
+        if (!empty($quote->getReservedOrderId())) {
+            $orderIncrementId = $quote->getReservedOrderId();
+        }
+
         $params = [
             'external_references' => [
-                'transaction_reference' => $quote->getReservedOrderId()
+                'transaction_reference' => $orderIncrementId
             ],
             'items' => $items,
 //            'payment_details' => ['payment_method' => 'pix'],
@@ -82,6 +87,7 @@ class BasicService
             'api_secret' => $this->paymentConfig->getApiSecret($storeId),
             'is_test' => $this->paymentConfig->getIsTestMode($storeId),
             'success_url' => $this->paymentConfig->getSuccessUrl()
+            //'callback' => $this->paymentConfig->getPostbackUrl(),
         ];
 
         return $params;
