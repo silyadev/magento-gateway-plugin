@@ -465,7 +465,7 @@ class Sepa extends PaymentMethod
         $info->addData(
             [
                 'sepa_iban' => $additionalData->getSepaIban(),
-                'sepa_bic_swift' => $additionalData->getSepaBicSwift()
+                'sepa_bic_swift' => ($additionalData->getSepaBicSwift()) ?: 'XXXX'
             ]
         );
 

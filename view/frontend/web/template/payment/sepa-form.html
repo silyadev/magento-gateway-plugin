@@ -21,7 +21,7 @@
                               valueUpdate: 'keyup' "/>
         </div>
     </div>
-    <div class="field bic_swift required">
+    <div class="field bic_swift">
         <label data-bind="attr: {for: getCode() + '_bic_swift'}" class="label">
             <span><!-- ko i18n: 'SWIFT / BIC'--><!-- /ko --></span>
         </label>
@@ -31,8 +31,7 @@
                                     autocomplete: 'off',
                                     id: getCode() + '_bic_swift',
                                     title: $t('SWIFT / BIC'),
-                                    'data-container': getCode() + '-bic_swift',
-                                    'data-validate': JSON.stringify({'required':true})},
+                                    'data-container': getCode() + '-bic_swift'},
                               enable: isActive($parents),
                               value: bic_swift,
                               valueUpdate: 'keyup' "/>
