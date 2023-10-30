@@ -473,6 +473,17 @@ class Sepa extends PaymentMethod
     }
 
     /**
+     * Method availability fix (credit card validation is not needed in SEPA)
+     *
+     * @param \Magento\Quote\Api\Data\CartInterface|null $quote
+     * @return bool
+     */
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
+    {
+        return AbstractMethod::isAvailable($quote);
+    }
+
+    /**
      * Retrieve information from payment configuration
      *
      * @param string $field
