@@ -7,6 +7,7 @@ use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
 use Magento\Framework\Locale\ResolverInterface;
 use Vendo\Gateway\Gateway\Pix;
+use Vendo\Gateway\Service\GetReservedOrderIncrementId;
 
 class AuthorizeRequestBuilder implements BuilderInterface
 {
@@ -14,10 +15,16 @@ class AuthorizeRequestBuilder implements BuilderInterface
 
     private $paymentConfig;
 
-    public function __construct(ResolverInterface $localeResolver, Pix $paymentConfig)
-    {
+    private $getReservedOrderIncrementId;
+
+    public function __construct(
+        ResolverInterface $localeResolver,
+        Pix $paymentConfig,
+        GetReservedOrderIncrementId $getReservedOrderIncrementId
+    ) {
         $this->localeResolver = $localeResolver;
         $this->paymentConfig = $paymentConfig;
+        $this->getReservedOrderIncrementId = $getReservedOrderIncrementId;
     }
 
     /**
@@ -47,10 +54,10 @@ class AuthorizeRequestBuilder implements BuilderInterface
         $billingAddress = $order->getBillingAddress();
         $shippingAddress = $order->getShippingAddress();
         $storeId = $order->getStoreId();
-
-        return [
+        $reservedOrderId = $this->getReservedOrderIncrementId->execute();
+        $requestData = [
             'external_references' => [
-                'transaction_reference' => $order->getOrderIncrementId()
+                'transaction_reference' => $reservedOrderId
             ],
             'items' => $items,
             'payment_details' => ['payment_method' => 'crypto'],
@@ -87,5 +94,6 @@ class AuthorizeRequestBuilder implements BuilderInterface
             'is_test' => $this->paymentConfig->getIsTestMode($storeId),
             'success_url' => $this->paymentConfig->getSuccessUrl()
         ];
+        return $requestData;
     }
 }

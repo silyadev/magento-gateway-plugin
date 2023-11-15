@@ -5,6 +5,7 @@ namespace Vendo\Gateway\Model;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Quote\Model\Quote;
 use Vendo\Gateway\Gateway\Pix;
+use Vendo\Gateway\Service\GetReservedOrderIncrementId;
 
 class BasicService
 {
@@ -18,10 +19,16 @@ class BasicService
      */
     private $paymentConfig;
 
-    public function __construct(ResolverInterface $localeResolver, Pix $paymentConfig)
-    {
+    private $getReservedOrderIncrementId;
+
+    public function __construct(
+        ResolverInterface $localeResolver,
+        Pix $paymentConfig,
+        GetReservedOrderIncrementId $getReservedOrderIncrementId
+    ) {
         $this->localeResolver = $localeResolver;
         $this->paymentConfig = $paymentConfig;
+        $this->getReservedOrderIncrementId = $getReservedOrderIncrementId;
     }
     public function getBaseVerificationUrlRequestData(Quote $quote): array
     {
@@ -44,10 +51,7 @@ class BasicService
         $shippingAddress = $quote->getShippingAddress();
         $storeId = $quote->getStoreId();
 
-        $orderIncrementId = 0;
-        if (!empty($quote->getReservedOrderId())) {
-            $orderIncrementId = $quote->getReservedOrderId();
-        }
+        $orderIncrementId = $this->getReservedOrderIncrementId->execute();
 
         $params = [
             'external_references' => [
@@ -89,7 +93,6 @@ class BasicService
             'success_url' => $this->paymentConfig->getSuccessUrl()
             //'callback' => $this->paymentConfig->getPostbackUrl(),
         ];
-
         return $params;
     }
 }
