@@ -2,12 +2,6 @@
 
 namespace Vendo\Gateway\Model;
 
-use Vendo\Gateway\Api\CryptoServiceInterface;
-use Magento\Checkout\Model\Session;
-use Magento\Framework\Locale\ResolverInterface;
-use Vendo\Gateway\Gateway\Crypto;
-use Vendo\Gateway\Adapter\Crypto as CryptoAdapter;
-
 class CryptoService implements \Vendo\Gateway\Api\CryptoServiceInterface
 {
     /**

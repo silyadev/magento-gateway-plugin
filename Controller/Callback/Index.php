@@ -17,6 +17,7 @@ use Magento\Sales\Model\Order\PaymentAdapterInterface;
 use Psr\Log\LogLevel;
 use \Vendo\Gateway\Model\PaymentMethod;
 use \Vendo\Gateway\Model\Sepa;
+use Vendo\Gateway\Model\Ui\Crypto\ConfigProvider;
 use Vendo\Gateway\Model\VendoHelpers;
 use Magento\Sales\Model\Order\Invoice;
 
@@ -137,17 +138,20 @@ class Index extends Action
             $payment = $order->getPayment();
 
             $methodCode = $payment->getMethod();
-            if (!in_array($methodCode, [PaymentMethod::CODE, Sepa::CODE])) {
+            if (!in_array($methodCode, [PaymentMethod::CODE, Sepa::CODE, \Vendo\Gateway\Model\Ui\Pix\ConfigProvider::CODE, \Vendo\Gateway\Model\Ui\Crypto\ConfigProvider::CODE])) {
                 $this->redirectCart('Wrong payment method');
             }
 
-            $token = $payment->getAdditionalInformation('sepa_payment_token');
-            if (!$token) {
-                $token = $payment->getExtensionAttributes()->getVaultPaymentToken()->getGatewayToken();
+            if ($methodCode == PaymentMethod::CODE || $methodCode == Sepa::CODE) {
+                $token = $payment->getAdditionalInformation('sepa_payment_token');
                 if (!$token) {
-                    $this->redirectCart('No payment token');
+                    $token = $payment->getExtensionAttributes()->getVaultPaymentToken()->getGatewayToken();
+                    if (!$token) {
+                        $this->redirectCart('No payment token');
+                    }
                 }
             }
+
 
             $invoice_details = $order->getInvoiceCollection();
             foreach ($invoice_details as $invoice) {

@@ -43,7 +43,7 @@
     </virtualType>
     <virtualType name="PixConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
         <arguments>
-            <argument name="configInterface" xsi:type="object">Vendo\Gateway\Gateway\Pix</argument>
+            <argument name="configInterface" xsi:type="object">Vendo\Gateway\Gateway\Config\Pix</argument>
         </arguments>
     </virtualType>
     <virtualType name="PixValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
@@ -97,7 +97,7 @@
     </virtualType>
     <virtualType name="CryptoConfigValueHandler" type="Magento\Payment\Gateway\Config\ConfigValueHandler">
         <arguments>
-            <argument name="configInterface" xsi:type="object">Vendo\Gateway\Gateway\Crypto</argument>
+            <argument name="configInterface" xsi:type="object">Vendo\Gateway\Gateway\Config\Crypto</argument>
         </arguments>
     </virtualType>
     <virtualType name="CryptoValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
@@ -129,4 +129,25 @@
             </argument>
         </arguments>
     </virtualType>
+
+    <virtualType name="PixService" type="Vendo\Gateway\Model\BasicService">
+        <arguments>
+            <argument name="paymentConfig" xsi:type="object">Vendo\Gateway\Gateway\Config\Pix</argument>
+        </arguments>
+    </virtualType>
+    <type name="Vendo\Gateway\Model\PixService">
+        <arguments>
+            <argument name="service" xsi:type="object">PixService</argument>
+        </arguments>
+    </type>
+    <virtualType name="CryptoService" type="Vendo\Gateway\Model\BasicService">
+        <arguments>
+            <argument name="paymentConfig" xsi:type="object">Vendo\Gateway\Gateway\Config\Crypto</argument>
+        </arguments>
+    </virtualType>
+    <type name="Vendo\Gateway\Model\CryptoService">
+        <arguments>
+            <argument name="service" xsi:type="object">CryptoService</argument>
+        </arguments>
+    </type>
 </config>

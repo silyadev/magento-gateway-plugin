@@ -1,22 +1,21 @@
 <?php
 
-namespace Vendo\Gateway\Gateway;
+namespace Vendo\Gateway\Gateway\Config;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Encryption\EncryptorInterface;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\UrlInterface;
-use Magento\Store\Model\ScopeInterface;
-use Vendo\Gateway\Model\PaymentMethod;
 use Magento\Payment\Gateway\Config\Config;
+use Magento\Store\Model\ScopeInterface;
 use Vendo\Gateway\Gateway\Config as VendoGatewayConfig;
+use Vendo\Gateway\Gateway\StoreConfigResolver;
 
-class Crypto extends Config
+class Pix extends Config
 {
-    public const CODE = 'vendo_crypto';
     public const KEY_ACTIVE = 'active';
-
+    public const CODE = 'vendo_pix';
 
     /**
      * @var StoreConfigResolver

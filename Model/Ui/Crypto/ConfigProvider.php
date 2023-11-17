@@ -3,7 +3,7 @@
 namespace Vendo\Gateway\Model\Ui\Crypto;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Vendo\Gateway\Gateway\Crypto;
+use Vendo\Gateway\Gateway\Config\Crypto;
 
 class ConfigProvider implements ConfigProviderInterface
 {

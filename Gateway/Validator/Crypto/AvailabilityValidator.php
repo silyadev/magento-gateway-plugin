@@ -3,9 +3,8 @@
 namespace Vendo\Gateway\Gateway\Validator\Crypto;
 
 use Magento\Payment\Gateway\Validator\AbstractValidator;
-use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
-use Vendo\Gateway\Gateway\Crypto;
+use Vendo\Gateway\Gateway\Config\Crypto;
 
 
 class AvailabilityValidator extends AbstractValidator

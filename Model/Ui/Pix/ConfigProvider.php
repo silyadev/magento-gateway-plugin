@@ -3,7 +3,7 @@
 namespace Vendo\Gateway\Model\Ui\Pix;
 
 use Magento\Checkout\Model\ConfigProviderInterface;
-use Vendo\Gateway\Gateway\Pix;
+use Vendo\Gateway\Gateway\Config\Pix;
 
 class ConfigProvider implements ConfigProviderInterface
 {

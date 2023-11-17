@@ -39,7 +39,7 @@ class Index extends \Magento\Framework\App\Action\Action
         ResourceConnection       $resourceConnection,
         OrderRepositoryInterface $orderRepository,
         PaymentMethod            $paymentMethod,
-        Vendo                    $vendoGateway,
+        Vendo                    $vendoGateway
     )
     {
         $this->resultRawFactory = $resultRawFactory;

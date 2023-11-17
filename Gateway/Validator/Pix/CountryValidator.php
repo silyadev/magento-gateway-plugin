@@ -3,9 +3,8 @@
 namespace Vendo\Gateway\Gateway\Validator\Pix;
 
 use Magento\Payment\Gateway\Validator\AbstractValidator;
-use Magento\Payment\Gateway\Validator\ResultInterface;
 use Magento\Payment\Gateway\Validator\ResultInterfaceFactory;
-use Vendo\Gateway\Gateway\Pix;
+use Vendo\Gateway\Gateway\Config\Pix;
 
 class CountryValidator extends AbstractValidator
 {

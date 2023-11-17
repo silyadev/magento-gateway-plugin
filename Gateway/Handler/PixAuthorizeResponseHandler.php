@@ -12,10 +12,6 @@ class PixAuthorizeResponseHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-        $status = $response['status'];
-        $verificationUrl = $response['result']['verification_url'];
-        $transactionId = $response['transaction']['id'];
-        $paymentDetailsToken = $response['payment_details_token'];
-        // TODO: implement response handle method: create magento transaction, redirect and save status
+
     }
 }

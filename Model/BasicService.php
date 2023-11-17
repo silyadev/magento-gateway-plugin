@@ -2,9 +2,12 @@
 
 namespace Vendo\Gateway\Model;
 
+use Magento\Checkout\Model\Session;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Quote\Model\Quote;
-use Vendo\Gateway\Gateway\Pix;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
+use Magento\Payment\Gateway\Config\Config;
 
 class BasicService
 {
@@ -14,14 +17,42 @@ class BasicService
     private $localeResolver;
 
     /**
-     * @var Pix
+     * @var Config
      */
     private $paymentConfig;
 
-    public function __construct(ResolverInterface $localeResolver, Pix $paymentConfig)
-    {
+    /**
+     * @var Session
+     */
+    private $checkoutSession;
+
+    /**
+     * @var PaymentHelper
+     */
+    private $paymentHelper;
+
+    /**
+     * @var OrderInterface
+     */
+    private $order = null;
+
+    /**
+     * @var OrderPaymentExtensionInterfaceFactory
+     */
+    private $paymentExtensionFactory;
+
+    public function __construct(
+        ResolverInterface $localeResolver,
+        Config $paymentConfig,
+        Session $checkoutSession,
+        PaymentHelper $paymentHelper,
+        OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
+    ) {
         $this->localeResolver = $localeResolver;
         $this->paymentConfig = $paymentConfig;
+        $this->checkoutSession = $checkoutSession;
+        $this->paymentHelper = $paymentHelper;
+        $this->paymentExtensionFactory = $paymentExtensionFactory;
     }
     public function getBaseVerificationUrlRequestData(Quote $quote): array
     {
@@ -44,17 +75,21 @@ class BasicService
         $shippingAddress = $quote->getShippingAddress();
         $storeId = $quote->getStoreId();
 
-        $orderIncrementId = 0;
-        if (!empty($quote->getReservedOrderId())) {
-            $orderIncrementId = $quote->getReservedOrderId();
-        }
+        $orderIncrementId = $quote->getReservedOrderId();
+        $this->order = $order = $this->paymentHelper->loadOrderByIncrementId($orderIncrementId);
+        $this->checkoutSession->setData(PaymentMethod::SESSION_ORDER_KEY, $order->getEntityId());
+        $this->checkoutSession->setLastQuoteId($quote->getId());
+        $this->checkoutSession->setLastSuccessQuoteId($quote->getId());
+        $this->checkoutSession->setLastOrderId($order->getId());
+        $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
+        $this->checkoutSession->setLastOrderStatus($order->getStatus());
+        $quote->setReservedOrderId($orderIncrementId);
 
         $params = [
             'external_references' => [
                 'transaction_reference' => $orderIncrementId
             ],
             'items' => $items,
-//            'payment_details' => ['payment_method' => 'pix'],
             'customer_details' => [
                 'first_name' => $billingAddress->getFirstname(),
                 'last_name' => $billingAddress->getLastname(),
@@ -64,7 +99,6 @@ class BasicService
                 'postal_code' => $billingAddress->getPostcode(),
                 'email' => $billingAddress->getEmail(),
                 'phone' => $billingAddress->getTelephone(),
-//                'national_identifier' => $quote->getPayment()->getAdditionalInformation('national_identifier')
             ],
             'shipping_address' => [
                 'first_name' => $shippingAddress->getFirstname(),
@@ -87,7 +121,6 @@ class BasicService
             'api_secret' => $this->paymentConfig->getApiSecret($storeId),
             'is_test' => $this->paymentConfig->getIsTestMode($storeId),
             'success_url' => $this->paymentConfig->getSuccessUrl()
-            //'callback' => $this->paymentConfig->getPostbackUrl(),
         ];
 
         return $params;

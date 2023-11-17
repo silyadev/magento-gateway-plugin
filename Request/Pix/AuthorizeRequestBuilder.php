@@ -2,11 +2,11 @@
 
 namespace Vendo\Gateway\Request\Pix;
 
+use Magento\Framework\Locale\ResolverInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Sales\Api\Data\OrderItemInterface;
-use Magento\Framework\Locale\ResolverInterface;
-use Vendo\Gateway\Gateway\Pix;
+use Vendo\Gateway\Gateway\Config\Pix;
 
 class AuthorizeRequestBuilder implements BuilderInterface
 {

@@ -33,9 +33,8 @@ class Index extends Action
         RedirectFactory          $resultRedirectFactory,
         MessageManagerInterface  $messageManager,
         PaymentMethod            $paymentMethod,
-        Vendo                    $vendoGateway,
-    )
-    {
+        Vendo                    $vendoGateway
+    ) {
         $this->orderRepository = $orderRepository;
         $this->vendoHelpers = $vendoHelpers;
         $this->requestInterface = $requestInterface;

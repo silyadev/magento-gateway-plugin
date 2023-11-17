@@ -7,9 +7,10 @@ define(
         'Magento_Checkout/js/action/place-order',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/model/payment/additional-validators',
+        'Magento_Customer/js/customer-data',
         'mage/validation'
     ],
-    function (Component, $, urlBuilder, verificationUrl, placeOrderAction, fullScreenLoader, additionalValidators) {
+    function (Component, $, urlBuilder, verificationUrl, placeOrderAction, fullScreenLoader, additionalValidators, customerData) {
         'use strict';
 
         return Component.extend({
@@ -57,17 +58,8 @@ define(
                     fullScreenLoader.startLoader();
                     verificationUrl().then(function(response) {
                         self.isPlaceOrderActionAllowed(true);
-                        self.getPlaceOrderDeferredObject()
-                            .done(
-                                function () {
-                                    window.location.href = response;
-                                }
-                            ).always(
-                            function () {
-                                self.isPlaceOrderActionAllowed(true);
-                            }
-                        );
-
+                        customerData.invalidate(['cart']);
+                        window.location.href = response;
                     });
                 }
 

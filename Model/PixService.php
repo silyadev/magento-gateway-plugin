@@ -2,12 +2,6 @@
 
 namespace Vendo\Gateway\Model;
 
-use Vendo\Gateway\Api\PixServiceInterface;
-use Magento\Checkout\Model\Session;
-use Magento\Framework\Locale\ResolverInterface;
-use Vendo\Gateway\Gateway\Pix;
-use Vendo\Gateway\Adapter\Pix as PixAdapter;
-
 class PixService implements \Vendo\Gateway\Api\PixServiceInterface
 {
     /**

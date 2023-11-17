@@ -20,7 +20,6 @@ class Authorize implements ClientInterface
      */
     public function placeRequest(TransferInterface $transferObject)
     {
-        $params = $transferObject->getBody();
-        return $this->pix->authorize($params);
+        return [];
     }
 }
