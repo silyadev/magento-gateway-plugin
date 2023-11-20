@@ -3,11 +3,13 @@
 namespace Vendo\Gateway\Model;
 
 use Magento\Checkout\Model\Session;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Locale\ResolverInterface;
 use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderPaymentExtensionInterfaceFactory;
-use Magento\Payment\Gateway\Config\Config;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Vendo\Gateway\Gateway\Config;
+use Magento\Sales\Api\Data\TransactionInterface;
 
 class BasicService
 {
@@ -36,47 +38,30 @@ class BasicService
      */
     private $order = null;
 
-    /**
-     * @var OrderPaymentExtensionInterfaceFactory
-     */
-    private $paymentExtensionFactory;
-
     public function __construct(
         ResolverInterface $localeResolver,
         Config $paymentConfig,
         Session $checkoutSession,
-        PaymentHelper $paymentHelper,
-        OrderPaymentExtensionInterfaceFactory $paymentExtensionFactory
+        PaymentHelper $paymentHelper
     ) {
         $this->localeResolver = $localeResolver;
         $this->paymentConfig = $paymentConfig;
         $this->checkoutSession = $checkoutSession;
         $this->paymentHelper = $paymentHelper;
-        $this->paymentExtensionFactory = $paymentExtensionFactory;
     }
-    public function getBaseVerificationUrlRequestData(Quote $quote): array
+
+
+    /**
+     * Get or create an order for quote
+     *
+     * @param Quote $quote
+     * @return OrderInterface|null
+     */
+    public function retrieveOrderForQuote(Quote $quote): ?OrderInterface
     {
-        $quoteItems = $quote->getItems();
-        $items = [];
-
-        foreach ($quoteItems as $quoteItem) {
-            if ($quoteItem->getParentItem()) {
-                continue;
-            }
-            $items[] = [
-                'item_id' => $quoteItem->getSku(),
-                'item_description' => $quoteItem->getName(),
-                'item_price' => $quoteItem->getPrice(),
-                'item_quantity' => $quoteItem->getQty()
-            ];
-        }
-
-        $billingAddress = $quote->getBillingAddress();
-        $shippingAddress = $quote->getShippingAddress();
-        $storeId = $quote->getStoreId();
-
+        $quote->reserveOrderId();
         $orderIncrementId = $quote->getReservedOrderId();
-        $this->order = $order = $this->paymentHelper->loadOrderByIncrementId($orderIncrementId);
+        $order = $this->paymentHelper->loadOrderByIncrementId($orderIncrementId);
         $this->checkoutSession->setData(PaymentMethod::SESSION_ORDER_KEY, $order->getEntityId());
         $this->checkoutSession->setLastQuoteId($quote->getId());
         $this->checkoutSession->setLastSuccessQuoteId($quote->getId());
@@ -85,44 +70,177 @@ class BasicService
         $this->checkoutSession->setLastOrderStatus($order->getStatus());
         $quote->setReservedOrderId($orderIncrementId);
 
+        return $order;
+    }
+
+    /**
+     * Gather general request
+     *
+     * @param OrderInterface $order
+     * @return array
+     */
+    public function getBaseVerificationUrlRequestData(OrderInterface $order): array
+    {
+        $this->order = $order;
+
         $params = [
             'external_references' => [
-                'transaction_reference' => $orderIncrementId
+                'transaction_reference' => $order->getIncrementId()
             ],
-            'items' => $items,
-            'customer_details' => [
-                'first_name' => $billingAddress->getFirstname(),
-                'last_name' => $billingAddress->getLastname(),
-                'language' => strstr($this->localeResolver->getLocale(), '_', true),
-                'address' => implode(' ', $billingAddress->getStreet()),
-                'country' => $billingAddress->getCountryId(),
-                'postal_code' => $billingAddress->getPostcode(),
-                'email' => $billingAddress->getEmail(),
-                'phone' => $billingAddress->getTelephone(),
-            ],
-            'shipping_address' => [
-                'first_name' => $shippingAddress->getFirstname(),
-                'last_name' => $shippingAddress->getLastname(),
-                'address' => implode(' ', $shippingAddress->getStreet()),
-                'country' => $shippingAddress->getCountryId(),
-                'postal_code' => $shippingAddress->getPostcode(),
-                'phone' => $shippingAddress->getTelephone(),
-                'city' => $shippingAddress->getCity(),
-                'state' => $shippingAddress->getRegionCode()
-            ],
+            'items' => $this->getItemsRequestPart(),
+            'customer_details' => $this->getCustomerDetailsRequestPart(),
+            'shipping_address' => $this->getShippingAddressRequestPart(),
             'request_details' => [
-                'ip_address' => $quote->getRemoteIp(),
+                'ip_address' => $order->getRemoteIp(),
                 'browser_user_agent' => $_SERVER["HTTP_USER_AGENT"]
             ],
-            'amount' => $quote->getGrandTotal(),
-            'currency' => $quote->getCurrency()->getQuoteCurrencyCode(),
+            'amount' => $order->getGrandTotal(),
+            'currency' => $order->getOrderCurrencyCode(),
+            'success_url' => $this->paymentConfig->getSuccessUrl()
+        ];
+
+        $creds = $this->getApiCredsRequestPart();
+
+        return array_merge($params, $creds);
+    }
+
+    public function getCaptureRequestData(OrderPaymentInterface $payment): array
+    {
+        $this->order = $payment->getOrder();
+        $params = [
+            'transaction_id' => $payment->getLastTransId()
+        ];
+        $creds = $this->getApiCredsRequestPart();
+
+        return array_merge($params, $creds);
+    }
+
+    public function getRefundRequestData(OrderPaymentInterface $payment, $amount = null): array
+    {
+        $this->order = $payment->getOrder();
+
+        $params = [
+            'transaction_id' => $payment->getLastTransId()
+        ];
+        if ($amount) {
+            $params['partial_amount'] = $amount;
+        }
+        $creds = $this->getApiCredsRequestPart();
+
+        return array_merge($params, $creds);
+    }
+
+    /**
+     * Order items request part
+     *
+     * @return array
+     */
+    private function getItemsRequestPart(): array
+    {
+        $orderItems = $this->order->getItems();
+        $items = [];
+
+        foreach ($orderItems as $orderItem) {
+            if ($orderItem->getParentItem()) {
+                continue;
+            }
+            $items[] = [
+                'item_id' => $orderItem->getSku(),
+                'item_description' => $orderItem->getName(),
+                'item_price' => $orderItem->getPrice(),
+                'item_quantity' => $orderItem->getQtyOrdered()
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Customer data request part
+     *
+     * @return array
+     */
+    private function getCustomerDetailsRequestPart(): array
+    {
+        $billingAddress = $this->order->getBillingAddress();
+
+        return [
+            'first_name' => $billingAddress->getFirstname(),
+            'last_name' => $billingAddress->getLastname(),
+            'language' => strstr($this->localeResolver->getLocale(), '_', true),
+            'address' => implode(' ', $billingAddress->getStreet()),
+            'country' => $billingAddress->getCountryId(),
+            'postal_code' => $billingAddress->getPostcode(),
+            'email' => $billingAddress->getEmail(),
+            'phone' => $billingAddress->getTelephone(),
+        ];
+    }
+
+    /**
+     * Shipping address request part
+     *
+     * @return array
+     */
+    private function getShippingAddressRequestPart(): array
+    {
+        $shippingAddress = $this->order->getShippingAddress();
+
+        return [
+            'first_name' => $shippingAddress->getFirstname(),
+            'last_name' => $shippingAddress->getLastname(),
+            'address' => implode(' ', $shippingAddress->getStreet()),
+            'country' => $shippingAddress->getCountryId(),
+            'postal_code' => $shippingAddress->getPostcode(),
+            'phone' => $shippingAddress->getTelephone(),
+            'city' => $shippingAddress->getCity(),
+            'state' => $shippingAddress->getRegionCode(),
+        ];
+    }
+
+    /**
+     * API authorization request part
+     *
+     * @return array
+     */
+    private function getApiCredsRequestPart(): array
+    {
+        $storeId = $this->order->getStoreId();
+
+        return [
             'merchant_id' => $this->paymentConfig->getMerchantId($storeId),
             'site_id' => $this->paymentConfig->getSiteId($storeId),
             'api_secret' => $this->paymentConfig->getApiSecret($storeId),
             'is_test' => $this->paymentConfig->getIsTestMode($storeId),
-            'success_url' => $this->paymentConfig->getSuccessUrl()
         ];
+    }
 
-        return $params;
+    /**
+     * Create order transaction
+     *
+     * @param OrderInterface $order
+     * @param $transactionId
+     * @return void
+     */
+    public function generateTransaction(OrderInterface $order, $transactionId)
+    {
+        $this->paymentHelper->createOrderTransaction($order,
+            [
+                'txn_id' => $transactionId,
+                'is_closed' => 0,
+                'type' => TransactionInterface::TYPE_AUTH
+            ]
+        );
+    }
+
+    /**
+     * Create order invoice
+     *
+     * @param OrderInterface $order
+     * @return void
+     * @throws LocalizedException
+     */
+    public function generateInvoice(OrderInterface $order)
+    {
+        $this->paymentHelper->prepareInvoice($order);
     }
 }

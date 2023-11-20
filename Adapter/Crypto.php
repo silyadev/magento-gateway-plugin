@@ -15,4 +15,14 @@ class Crypto
     {
         return $this->basicAdapter->authorize($request);
     }
+
+    public function capture(array $request): array
+    {
+        return $this->basicAdapter->capture($request);
+    }
+
+    public function refund(array $request): array
+    {
+        return $this->basicAdapter->refund($request);
+    }
 }
