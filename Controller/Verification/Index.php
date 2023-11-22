@@ -62,8 +62,10 @@ class Index extends \Magento\Framework\App\Action\Action
 
         // Default value
         $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . __('ERROR: #0001 not request params') . '</errorMessage>'; // Response ERROR
+        $responseType = 'verification';
 
         if ((!empty($params['callback']) && $params['callback'] == 'verification') || (!empty($params['callback']) && $params['callback'] == 'transaction') ) {
+            $responseType = $params['callback'];
             if (!empty($params['transaction_id']) && !empty($params['merchant_reference'])) { // Order ID
                 if (isset($params['status']) || isset($params['is_test'])) {
 
@@ -210,10 +212,10 @@ class Index extends \Magento\Framework\App\Action\Action
 //        $contentOkOrError = '<code>2</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
 
         $content = '<?xml version="1.0" encoding="UTF-8"?>
-<postbackResponse>
-  <verification>
-    ' . $contentOkOrError . '
-  </verification>
+<postbackResponse>'
+  . '<' . $responseType . '>'
+     . $contentOkOrError . '
+  </' . $responseType . '>
 </postbackResponse>';
 
         $result->setHeader('Content-Type', 'text/xml');
