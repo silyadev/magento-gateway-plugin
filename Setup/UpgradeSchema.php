@@ -21,7 +21,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         $installer->startSetup();
 
         $orderTable = 'sales_order'; // Table name.
-        if (version_compare($context->getVersion(), '1.0.0', '>=')) {
+        if (version_compare($context->getVersion(), '1.0.0', '<')) {
             $installer->getConnection()->addColumn(
                 $installer->getTable($orderTable),
                 'vendo_payment_response_status',
