@@ -3,6 +3,7 @@
 namespace Vendo\Gateway\Controller\Verification;
 
 use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\View\Result\PageFactory;
 use Magento\Framework\Controller\Result\RawFactory;
 
@@ -15,8 +16,9 @@ use Vendo\Gateway\Model\PaymentMethod;
 use Vendo\Gateway\Model\VendoHelpers;
 use Vendo\Gateway\Gateway\Vendo;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\App\CsrfAwareActionInterface;
 
-class Index extends \Magento\Framework\App\Action\Action
+class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
     const S2S_RESPONSE_STATUS_OK = 1;
     const S2S_RESPONSE_STATUS_ERROR = 2;
@@ -222,5 +224,22 @@ class Index extends \Magento\Framework\App\Action\Action
         $result->setContents($content);
 
         return $result;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCsrfValidationException(
+        RequestInterface $request
+    ): ?InvalidRequestException {
+        return null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function validateForCsrf(RequestInterface $request): ?bool
+    {
+        return true;
     }
 }
