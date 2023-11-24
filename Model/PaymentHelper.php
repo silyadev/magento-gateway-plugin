@@ -243,4 +243,9 @@ class PaymentHelper
 
         return $this->cartManagement->submit($this->quote);
     }
+
+    public function saveOrder(OrderInterface $order)
+    {
+        return $this->orderRepository->save($order);
+    }
 }
