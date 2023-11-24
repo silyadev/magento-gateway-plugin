@@ -3,9 +3,10 @@
 namespace Vendo\Gateway\Model;
 
 use Magento\Checkout\Model\Session;
-use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Vendo\Gateway\Adapter\Pix;
 use Vendo\Gateway\Api\PixServiceInterface;
+use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Vendo\Gateway\Gateway\Request\RequestBuilder;
 
 class PixService implements PixServiceInterface
 {
@@ -20,18 +21,25 @@ class PixService implements PixServiceInterface
     private $pixAdapter;
 
     /**
-     * @var BasicService
+     * @var RequestBuilder
      */
-    private $service;
+    private $requestBuilder;
+
+    /**
+     * @var PaymentHelper
+     */
+    private $paymentHelper;
 
     public function __construct(
         Session $checkoutSession,
         Pix $pixAdapter,
-        BasicService $service
+        RequestBuilder $requestBuilder,
+        PaymentHelper $paymentHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->pixAdapter = $pixAdapter;
-        $this->service = $service;
+        $this->requestBuilder = $requestBuilder;
+        $this->paymentHelper = $paymentHelper;
     }
 
     /**
@@ -40,23 +48,23 @@ class PixService implements PixServiceInterface
     public function getVerificationUrl(): string
     {
         $quote = $this->checkoutSession->getQuote();
-        $order = $this->service->retrieveOrderForQuote($quote);
-        $params = $this->service->getBaseVerificationUrlRequestData($order);
+        $order = $this->paymentHelper->retrieveOrderForQuote($quote);
+        $params = $this->requestBuilder->getBaseVerificationUrlRequestData($order);
         $params['payment_details'] = ['payment_method' => 'pix'];
         $params['customer_details']['national_identifier'] =
             $quote->getPayment()->getAdditionalInformation('national_identifier');
 
         $response = $this->pixAdapter->authorize($params);
 
-        $this->service->generateTransaction($order, $response['transaction']['id']);
-        $this->service->generateInvoice($order);
+        $this->paymentHelper->createOpenedTransaction($order, $response['transaction']['id']);
+        $this->paymentHelper->generateInvoice($order);
 
         return $response['result']['verification_url'];
     }
 
     public function capture(OrderPaymentInterface $payment): array
     {
-        $params = $this->service->getCaptureRequestData($payment);
+        $params = $this->requestBuilder->getCaptureRequestData($payment);
         $response = $this->pixAdapter->capture($params);
 
         return $response;
@@ -64,7 +72,7 @@ class PixService implements PixServiceInterface
 
     public function refund(OrderPaymentInterface $payment, $amount = null): array
     {
-        $params = $this->service->getCaptureRequestData($payment, $amount);
+        $params = $this->requestBuilder->getRefundRequestData($payment, $amount);
         $response = $this->pixAdapter->refund($params);
 
         return $response;

@@ -6,6 +6,7 @@ use Magento\Checkout\Model\Session;
 use Vendo\Gateway\Adapter\Crypto;
 use Vendo\Gateway\Api\CryptoServiceInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Vendo\Gateway\Gateway\Request\RequestBuilder;
 
 class CryptoService implements CryptoServiceInterface
 {
@@ -20,18 +21,25 @@ class CryptoService implements CryptoServiceInterface
     private $cryptoAdapter;
 
     /**
-     * @var BasicService
+     * @var RequestBuilder
      */
-    private $service;
+    private $requestBuilder;
+
+    /**
+     * @var PaymentHelper
+     */
+    private $paymentHelper;
 
     public function __construct(
         Session $checkoutSession,
         Crypto $cryptoAdapter,
-        BasicService $service
+        RequestBuilder $requestBuilder,
+        PaymentHelper $paymentHelper
     ) {
         $this->checkoutSession = $checkoutSession;
         $this->cryptoAdapter = $cryptoAdapter;
-        $this->service = $service;
+        $this->requestBuilder = $requestBuilder;
+        $this->paymentHelper = $paymentHelper;
     }
 
     /**
@@ -40,22 +48,22 @@ class CryptoService implements CryptoServiceInterface
     public function getVerificationUrl(): string
     {
         $quote = $this->checkoutSession->getQuote();
-        $order = $this->service->retrieveOrderForQuote($quote);
+        $order = $this->paymentHelper->retrieveOrderForQuote($quote);
 
-        $params = $this->service->getBaseVerificationUrlRequestData($order);
+        $params = $this->requestBuilder->getBaseVerificationUrlRequestData($order);
         $params['payment_details'] = ['payment_method' => 'crypto'];
 
         $response = $this->cryptoAdapter->authorize($params);
 
-        $this->service->generateTransaction($order, $response['transaction']['id']);
-        $this->service->generateInvoice($order);
+        $this->paymentHelper->createOpenedTransaction($order, $response['transaction']['id']);
+        $this->paymentHelper->generateInvoice($order);
 
         return $response['result']['verification_url'];
     }
 
     public function capture(OrderPaymentInterface $payment): array
     {
-        $params = $this->service->getCaptureRequestData($payment);
+        $params = $this->requestBuilder->getCaptureRequestData($payment);
         $response = $this->cryptoAdapter->capture($params);
 
         return $response;
@@ -63,7 +71,7 @@ class CryptoService implements CryptoServiceInterface
 
     public function refund(OrderPaymentInterface $payment, $amount = null): array
     {
-        $params = $this->service->getRefundRequestData($payment, $amount);
+        $params = $this->requestBuilder->getRefundRequestData($payment, $amount);
         $response = $this->cryptoAdapter->refund($params);
 
         return $response;

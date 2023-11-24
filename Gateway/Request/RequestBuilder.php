@@ -1,17 +1,14 @@
 <?php
 
-namespace Vendo\Gateway\Model;
+namespace Vendo\Gateway\Gateway\Request;
 
-use Magento\Checkout\Model\Session;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Locale\ResolverInterface;
-use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Vendo\Gateway\Gateway\Config;
-use Magento\Sales\Api\Data\TransactionInterface;
 
-class BasicService
+
+class RequestBuilder
 {
     /**
      * @var ResolverInterface
@@ -24,53 +21,16 @@ class BasicService
     private $paymentConfig;
 
     /**
-     * @var Session
-     */
-    private $checkoutSession;
-
-    /**
-     * @var PaymentHelper
-     */
-    private $paymentHelper;
-
-    /**
      * @var OrderInterface
      */
     private $order = null;
 
     public function __construct(
         ResolverInterface $localeResolver,
-        Config $paymentConfig,
-        Session $checkoutSession,
-        PaymentHelper $paymentHelper
+        Config $paymentConfig
     ) {
         $this->localeResolver = $localeResolver;
         $this->paymentConfig = $paymentConfig;
-        $this->checkoutSession = $checkoutSession;
-        $this->paymentHelper = $paymentHelper;
-    }
-
-
-    /**
-     * Get or create an order for quote
-     *
-     * @param Quote $quote
-     * @return OrderInterface|null
-     */
-    public function retrieveOrderForQuote(Quote $quote): ?OrderInterface
-    {
-        $quote->reserveOrderId();
-        $orderIncrementId = $quote->getReservedOrderId();
-        $order = $this->paymentHelper->loadOrderByIncrementId($orderIncrementId);
-        $this->checkoutSession->setData(PaymentMethod::SESSION_ORDER_KEY, $order->getEntityId());
-        $this->checkoutSession->setLastQuoteId($quote->getId());
-        $this->checkoutSession->setLastSuccessQuoteId($quote->getId());
-        $this->checkoutSession->setLastOrderId($order->getId());
-        $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
-        $this->checkoutSession->setLastOrderStatus($order->getStatus());
-        $quote->setReservedOrderId($orderIncrementId);
-
-        return $order;
     }
 
     /**
@@ -212,35 +172,5 @@ class BasicService
             'api_secret' => $this->paymentConfig->getApiSecret($storeId),
             'is_test' => $this->paymentConfig->getIsTestMode($storeId),
         ];
-    }
-
-    /**
-     * Create order transaction
-     *
-     * @param OrderInterface $order
-     * @param $transactionId
-     * @return void
-     */
-    public function generateTransaction(OrderInterface $order, $transactionId)
-    {
-        $this->paymentHelper->createOrderTransaction($order,
-            [
-                'txn_id' => $transactionId,
-                'is_closed' => 0,
-                'type' => TransactionInterface::TYPE_AUTH
-            ]
-        );
-    }
-
-    /**
-     * Create order invoice
-     *
-     * @param OrderInterface $order
-     * @return void
-     * @throws LocalizedException
-     */
-    public function generateInvoice(OrderInterface $order)
-    {
-        $this->paymentHelper->prepareInvoice($order);
     }
 }

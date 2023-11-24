@@ -6,6 +6,7 @@ namespace Vendo\Gateway\Model;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\Quote;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\Data\OrderInterfaceFactory;
 use Magento\Checkout\Model\Session;
@@ -77,6 +78,11 @@ class PaymentHelper
      */
     private $transaction;
 
+    /**
+     * @var ?Quote
+     */
+    private $quote = null;
+
     public function __construct(
         OrderInterfaceFactory $orderFactory,
         Session $checkoutSession,
@@ -102,13 +108,31 @@ class PaymentHelper
     }
 
     /**
+     * Get or create an order for quote
+     *
+     * @param Quote $quote
+     * @return OrderInterface|null
+     */
+    public function retrieveOrderForQuote(Quote $quote): ?OrderInterface
+    {
+        $quote->reserveOrderId();
+        $this->quote = $quote;
+
+        $orderIncrementId = $quote->getReservedOrderId();
+        $order = $this->loadOrderByIncrementId($orderIncrementId);
+        $quote->setReservedOrderId($orderIncrementId);
+
+        return $order;
+    }
+
+    /**
      * Retrieve order for quote
      *
      * @param string $incrementId
      * @param bool $useCache
      * @return OrderInterface|mixed|null
      */
-    public function loadOrderByIncrementId($incrementId, $useCache = true)
+    private function loadOrderByIncrementId($incrementId, $useCache = true)
     {
         if (!isset($this->orders))
             $this->orders = [];
@@ -127,12 +151,23 @@ class PaymentHelper
             } catch (NoSuchEntityException $e) {
                 $order = $this->createOrder();
             }
+            $this->registerOrderInSession($order);
 
             $this->orders[$incrementId] = $order;
             return $this->orders[$incrementId];
         } catch (\Exception $e) {
             return null;
         }
+    }
+
+    private function registerOrderInSession(OrderInterface $order)
+    {
+        $this->checkoutSession->setData(PaymentMethod::SESSION_ORDER_KEY, $order->getEntityId());
+        $this->checkoutSession->setLastQuoteId($this->quote->getId());
+        $this->checkoutSession->setLastSuccessQuoteId($this->quote->getId());
+        $this->checkoutSession->setLastOrderId($order->getId());
+        $this->checkoutSession->setLastRealOrderId($order->getIncrementId());
+        $this->checkoutSession->setLastOrderStatus($order->getStatus());
     }
 
     public function createOrderTransaction(OrderInterface $order, array $data)
@@ -164,6 +199,17 @@ class PaymentHelper
         return  $transaction->getTransactionId();
     }
 
+    public function createOpenedTransaction(OrderInterface $order, string $transactionId)
+    {
+        $params = [
+            'txn_id' => $transactionId,
+            'is_closed' => 0,
+            'type' => TransactionInterface::TYPE_AUTH
+        ];
+
+        return $this->createOrderTransaction($order, $params);
+    }
+
     /**
      * Create opened invoice
      *
@@ -172,7 +218,7 @@ class PaymentHelper
      * @throws LocalizedException
      * @throws \Exception
      */
-    public function prepareInvoice(OrderInterface $order)
+    public function generateInvoice(OrderInterface $order)
     {
         $invoice = $this->invoiceService->prepareInvoice($order);
         $invoice->setState(Invoice::STATE_OPEN);
@@ -193,9 +239,8 @@ class PaymentHelper
      */
     private function createOrder()
     {
-        $quote = $this->checkoutSession->getQuote();
-        $quote->collectTotals()->save();
+        $this->quote->collectTotals()->save();
 
-        return $this->cartManagement->submit($quote);
+        return $this->cartManagement->submit($this->quote);
     }
 }
