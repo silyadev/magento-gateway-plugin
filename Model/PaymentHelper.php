@@ -243,7 +243,7 @@ class PaymentHelper
         $transaction = $this->transaction
             ->addObject($invoice)
             ->addObject($invoice->getOrder());
-        $this->transactionRepository->save($transaction);
+        $transaction->save();
     }
 
     /**

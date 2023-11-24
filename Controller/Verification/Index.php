@@ -174,7 +174,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                             $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
                             $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
                         }
-                    } elseif ($params['status'] == 0 || $params['transaction_status'] == 0) { // 0 = Verification failed
+                    } elseif ((isset($params['status']) && (isset($params['status']) && $params['status'] == 0))|| $params['transaction_status'] == 0) { // 0 = Verification failed
                         // If status == 0 => set 'sales_order.vendo_payment_response_status' = 5 => not use in Crone => response XML (OK) => write log.
 
                         try {
