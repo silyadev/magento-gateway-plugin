@@ -17,6 +17,7 @@ use Vendo\Gateway\Model\VendoHelpers;
 use Vendo\Gateway\Gateway\Vendo;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\CsrfAwareActionInterface;
+use Vendo\Gateway\Model\PaymentHelper;
 
 class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
@@ -31,6 +32,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     protected $orderRepository;
     protected $paymentMethod;
     protected $vendoGateway;
+    protected $paymentHelper;
 
     public function __construct(
         Context                  $context,
@@ -41,7 +43,8 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         ResourceConnection       $resourceConnection,
         OrderRepositoryInterface $orderRepository,
         PaymentMethod            $paymentMethod,
-        Vendo                    $vendoGateway
+        Vendo                    $vendoGateway,
+        PaymentHelper            $paymentHelper
     )
     {
         $this->resultRawFactory = $resultRawFactory;
@@ -51,6 +54,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
         $this->orderRepository = $orderRepository;
         $this->paymentMethod = $paymentMethod;
         $this->vendoGateway = $vendoGateway;
+        $this->paymentHelper = $paymentHelper;
         return parent::__construct($context);
     }
 
@@ -79,7 +83,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                     $connection = $this->resourceConnection->getConnection();
                     $table = $connection->getTableName(\Vendo\Gateway\Cron\CheckSuccessfulPayment::TABLE_NAME_ORDER);
 
-                    if ($params['status'] == 1) { // 1 = Verification was successful
+                    if ((isset($params['status']) && $params['status'] == 1) || (isset($params['transaction_status']) && $params['transaction_status'] == 1)) { // 1 = Verification was successful
                         // If status == 1 => use full Cron logic => response XML (OK or ERROR) => write log.
 
                         try {
@@ -140,6 +144,13 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                                                         $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
                                                     }
 
+                                                    if ($params['callback'] == 'verification') {
+                                                        $this->paymentHelper->updateTransactionData(
+                                                            $params['transaction_id'],
+                                                            ['is_closed' => 1]
+                                                        );
+                                                    }
+
                                                     // Set 'flags' in invoice.
                                                     $invoiceDetails = $order->getInvoiceCollection();
                                                     foreach ($invoiceDetails as $invoice) {
@@ -163,7 +174,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                             $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
                             $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
                         }
-                    } elseif ($params['status'] == 0) { // 0 = Verification failed
+                    } elseif ($params['status'] == 0 || $params['transaction_status'] == 0) { // 0 = Verification failed
                         // If status == 0 => set 'sales_order.vendo_payment_response_status' = 5 => not use in Crone => response XML (OK) => write log.
 
                         try {

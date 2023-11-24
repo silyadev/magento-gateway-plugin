@@ -20,6 +20,7 @@ use Magento\Sales\Api\TransactionRepositoryInterface;
 use Magento\Sales\Model\Service\InvoiceService;
 use Magento\Sales\Api\InvoiceRepositoryInterface;
 use Magento\Framework\DB\Transaction;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 
 class PaymentHelper
 {
@@ -78,6 +79,9 @@ class PaymentHelper
      */
     private $transaction;
 
+    /** @var null SearchCriteriaBuilder */
+    private $searchCriteriaBuilder;
+
     /**
      * @var ?Quote
      */
@@ -93,7 +97,8 @@ class PaymentHelper
         TransactionRepositoryInterface $transactionRepository,
         InvoiceService $invoiceService,
         InvoiceRepositoryInterface $invoiceRepository,
-        Transaction $transaction
+        Transaction $transaction,
+        SearchCriteriaBuilder $searchCriteriaBuilder
     ) {
         $this->orderFactory = $orderFactory;
         $this->checkoutSession = $checkoutSession;
@@ -105,6 +110,7 @@ class PaymentHelper
         $this->invoiceService = $invoiceService;
         $this->invoiceRepository = $invoiceRepository;
         $this->transaction = $transaction;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
     }
 
     /**
@@ -210,6 +216,16 @@ class PaymentHelper
         return $this->createOrderTransaction($order, $params);
     }
 
+    public function updateTransactionData(string $txnId, array $data)
+    {
+        $sc = $this->searchCriteriaBuilder->addFilter(TransactionInterface::TXN_ID, $txnId)->create();
+        $transaction = array_last($this->transactionRepository->getList($sc)->getItems());
+        if ($transaction) {
+            $transaction->addData($data);
+            $this->transactionRepository->save($transaction);
+        }
+    }
+
     /**
      * Create opened invoice
      *
@@ -227,7 +243,7 @@ class PaymentHelper
         $transaction = $this->transaction
             ->addObject($invoice)
             ->addObject($invoice->getOrder());
-        $transaction->save();
+        $this->transactionRepository->save($transaction);
     }
 
     /**
