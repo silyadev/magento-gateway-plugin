@@ -34,7 +34,7 @@ class PixRefundCommand implements CommandInterface
     {
         /** @var OrderPaymentInterface $payment */
         $payment = $commandSubject['payment']->getPayment();
-        $amount = isset($commandSubject['amount']) ?: null;
+        $amount = isset($commandSubject['amount']) ? $commandSubject['amount'] : null;
 
         $result = $this->pixService->refund($payment, $amount);
         if ($result['status'] == 1) {

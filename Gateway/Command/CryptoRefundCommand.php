@@ -34,8 +34,9 @@ class CryptoRefundCommand implements CommandInterface
     {
         /** @var OrderPaymentInterface $payment */
         $payment = $commandSubject['payment']->getPayment();
+        $amount = isset($commandSubject['amount']) ? $commandSubject['amount'] : null;
 
-        $result = $this->cryptoService->refund($payment);
+        $result = $this->cryptoService->refund($payment, $amount);
         if ($result['status'] != 1) {
             throw new CommandException(__('Refund failed. Response code %1, message: %2', $result["error"]["code"], $result["error"]["message"]));
         }
