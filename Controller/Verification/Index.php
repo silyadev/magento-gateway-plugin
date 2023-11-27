@@ -8,6 +8,7 @@ use Magento\Framework\View\Result\PageFactory;
 use Magento\Framework\Controller\Result\RawFactory;
 
 use Magento\Framework\App\RequestInterface;
+use Magento\Sales\Api\Data\TransactionInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
@@ -151,16 +152,27 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                                                         );
                                                     }
 
-                                                    // Set 'flags' in invoice.
-                                                    $invoiceDetails = $order->getInvoiceCollection();
-                                                    foreach ($invoiceDetails as $invoice) {
-                                                        try {
-                                                            $invoice->setState(Invoice::STATE_PAID);
-                                                            $invoice->save();
-                                                            $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>'; // Response OK
-                                                        } catch (\Exception $e) {
-                                                            $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
-                                                            $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
+                                                    if ($params['callback'] == 'transaction') {
+                                                        $this->paymentHelper
+                                                            ->createOrderTransaction($order, [
+                                                                'txn_id' => $params['transaction_id'],
+                                                                'type' => TransactionInterface::TYPE_CAPTURE,
+                                                                'is_closed' => 1,
+                                                                'parent_txn_id' => $params['original_transaction_id']
+                                                            ]);
+                                                        // Set 'flags' in invoice.
+                                                        $invoiceDetails = $order->getInvoiceCollection();
+                                                        /** @var Invoice $invoice */
+                                                        foreach ($invoiceDetails as $invoice) {
+                                                            try {
+                                                                $invoice->setState(Invoice::STATE_PAID);
+                                                                $invoice->setTransactionId($params['transaction_id']);
+                                                                $invoice->save();
+                                                                $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>'; // Response OK
+                                                            } catch (\Exception $e) {
+                                                                $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
+                                                                $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
+                                                            }
                                                         }
                                                     }
                                                 }

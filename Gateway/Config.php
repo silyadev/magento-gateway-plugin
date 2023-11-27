@@ -91,6 +91,6 @@ class Config
 
     public function getSuccessUrl(): string
     {
-        return $this->urlBuilder->getUrl('checkout/onepage/success/');
+        return $this->urlBuilder->getUrl('vendo/callback/index/');
     }
 }

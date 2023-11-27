@@ -189,9 +189,11 @@ class PaymentHelper
         $transaction = $this->transactionBuilder->setPayment($payment)
             ->setOrder($order)
             ->setTransactionId($data['txn_id'])
+
             ->setFailSafe(true)
             ->build($data['type']);
         $transaction->setIsClosed($data['is_closed']);
+        $transaction->setParentTxnId(isset($data['parent_txn_id']) ? $data['parent_txn_id'] : null);
 
         // Add transaction to payment
 //        $payment->addTransactionCommentsToOrder($transaction, __('The authorized amount is %1.', $formattedPrice));

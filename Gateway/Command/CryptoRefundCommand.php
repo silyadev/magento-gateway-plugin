@@ -32,22 +32,11 @@ class CryptoRefundCommand implements CommandInterface
      */
     public function execute(array $commandSubject)
     {
-        $a = 1;
         /** @var OrderPaymentInterface $payment */
         $payment = $commandSubject['payment']->getPayment();
 
         $result = $this->cryptoService->refund($payment);
-        //$requestId = $result['request_id'];
-        if ($result['status'] == 1) {
-//            $this->paymentHelper->createOrderTransaction($payment->getOrder(),
-//                [
-//                    'txn_id' => $result,
-//                    'is_closed' => 0,
-//                    'type' => TransactionInterface::TYPE_AUTH
-//                ]
-//            );
-//            $payment->getOrder()->void
-        } else {
+        if ($result['status'] != 1) {
             throw new CommandException(__('Refund failed. Response code %1, message: %2', $result["error"]["code"], $result["error"]["message"]));
         }
     }

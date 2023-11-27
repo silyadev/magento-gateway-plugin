@@ -58,8 +58,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="authorize" xsi:type="string">Vendo\Gateway\Gateway\Command\MockCommand</item>
-                <item name="capture" xsi:type="string">Vendo\Gateway\Gateway\Command\PixCaptureCommand</item>
-                <item name="cancel" xsi:type="string">Vendo\Gateway\Gateway\Command\PixRefundCommand</item>
+<!--                <item name="capture" xsi:type="string">Vendo\Gateway\Gateway\Command\PixCaptureCommand</item>-->
                 <item name="void" xsi:type="string">Vendo\Gateway\Gateway\Command\PixRefundCommand</item>
                 <item name="refund" xsi:type="string">Vendo\Gateway\Gateway\Command\PixRefundCommand</item>
             </argument>
@@ -100,8 +99,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="authorize" xsi:type="string">Vendo\Gateway\Gateway\Command\MockCommand</item>
-                <item name="capture" xsi:type="string">Vendo\Gateway\Gateway\Command\CryptoCaptureCommand</item>
-                <item name="cancel" xsi:type="string">Vendo\Gateway\Gateway\Command\CryptoRefundCommand</item>
+<!--                <item name="capture" xsi:type="string">Vendo\Gateway\Gateway\Command\CryptoCaptureCommand</item>-->
                 <item name="void" xsi:type="string">Vendo\Gateway\Gateway\Command\CryptoRefundCommand</item>
                 <item name="refund" xsi:type="string">Vendo\Gateway\Gateway\Command\CryptoRefundCommand</item>
             </argument>

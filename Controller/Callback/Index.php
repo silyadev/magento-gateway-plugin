@@ -14,12 +14,16 @@ use Magento\Sales\Api\OrderManagementInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\PaymentAdapterInterface;
+use Magento\Sales\Model\ResourceModel\Order\Invoice\Collection;
 use Psr\Log\LogLevel;
 use \Vendo\Gateway\Model\PaymentMethod;
 use \Vendo\Gateway\Model\Sepa;
 use Vendo\Gateway\Model\Ui\Crypto\ConfigProvider;
 use Vendo\Gateway\Model\VendoHelpers;
 use Magento\Sales\Model\Order\Invoice;
+use Vendo\Gateway\Model\Ui\Pix\ConfigProvider as PixConfigProvider;
+use Vendo\Gateway\Model\Ui\Crypto\ConfigProvider as CryptoConfigProvider;
+use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
 
 /**
  * Class Index
@@ -73,6 +77,11 @@ class Index extends Action
     protected $orderManagement;
 
     /**
+     * @var InvoiceSender
+     */
+    protected $invoiceSender;
+
+    /**
      * Index constructor.
      * @param Context $context
      * @param PageFactory $pageFactory
@@ -95,7 +104,8 @@ class Index extends Action
         VendoHelpers $vendoHelpers,
         Registry $registry,
         RedirectInterface $redirect,
-        OrderManagementInterface $orderManagement
+        OrderManagementInterface $orderManagement,
+        InvoiceSender $invoiceSender
     )
     {
         $this->_pageFactory = $pageFactory;
@@ -107,6 +117,7 @@ class Index extends Action
         $this->_registry = $registry;
         $this->redirect = $redirect;
         $this->orderManagement = $orderManagement;
+        $this->invoiceSender = $invoiceSender;
         return parent::__construct($context);
     }
 
@@ -138,10 +149,11 @@ class Index extends Action
             $payment = $order->getPayment();
 
             $methodCode = $payment->getMethod();
-            if (!in_array($methodCode, [PaymentMethod::CODE, Sepa::CODE, \Vendo\Gateway\Model\Ui\Pix\ConfigProvider::CODE, \Vendo\Gateway\Model\Ui\Crypto\ConfigProvider::CODE])) {
+            if (!in_array($methodCode, [PaymentMethod::CODE, Sepa::CODE, PixConfigProvider::CODE, CryptoConfigProvider::CODE])) {
                 $this->redirectCart('Wrong payment method');
             }
 
+            $invoice_details = $order->getInvoiceCollection();
             if ($methodCode == PaymentMethod::CODE || $methodCode == Sepa::CODE) {
                 $token = $payment->getAdditionalInformation('sepa_payment_token');
                 if (!$token) {
@@ -150,17 +162,25 @@ class Index extends Action
                         $this->redirectCart('No payment token');
                     }
                 }
-            }
 
 
-            $invoice_details = $order->getInvoiceCollection();
-            foreach ($invoice_details as $invoice) {
-                if ($invoice->getState() == Invoice::STATE_OPEN) {
-                    $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
-                    $invoice->capture();
-                    $invoice->save();
+                foreach ($invoice_details as $invoice) {
+                    if ($invoice->getState() == Invoice::STATE_OPEN) {
+                        $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
+                        $invoice->capture();
+                        $invoice->save();
+                    }
                 }
             }
+
+            if ($methodCode == PixConfigProvider::CODE || $methodCode == CryptoConfigProvider::CODE) {
+                foreach ($invoice_details as $invoice) {
+                    if (!$invoice->getEmailSent()) {
+                        $this->invoiceSender->send($invoice);
+                    }
+                }
+            }
+
 
             if ($order->getStatus() === Order::STATE_PROCESSING) {
                 $this->checkoutSession
