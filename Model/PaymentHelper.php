@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vendo\Gateway\Model;
 
+use Magento\Customer\Api\Data\GroupInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Quote\Model\Quote;
@@ -123,12 +124,36 @@ class PaymentHelper
     {
         $quote->reserveOrderId();
         $this->quote = $quote;
+        $this->fillCustomerInfoForGuestQuote();
+
 
         $orderIncrementId = $quote->getReservedOrderId();
         $order = $this->loadOrderByIncrementId($orderIncrementId);
         $quote->setReservedOrderId($orderIncrementId);
 
         return $order;
+    }
+
+    /**
+     * Fill quote with customer data for guest session
+     *
+     * @return void
+     */
+    private function fillCustomerInfoForGuestQuote()
+    {
+        if ($this->quote->getCustomerGroupId() == GroupInterface::NOT_LOGGED_IN_ID) {
+            $this->quote->setCustomerId(null);
+            $this->quote->setCustomerEmail($this->quote->getBillingAddress()->getEmail());
+            if ($this->quote->getCustomerFirstname() === null && $this->quote->getCustomerLastname() === null) {
+                $this->quote->setCustomerFirstname($this->quote->getBillingAddress()->getFirstname());
+                $this->quote->setCustomerLastname($this->quote->getBillingAddress()->getLastname());
+                if ($this->quote->getBillingAddress()->getMiddlename() === null) {
+                    $this->quote->setCustomerMiddlename($this->quote->getBillingAddress()->getMiddlename());
+                }
+            }
+            $this->quote->setCustomerIsGuest(true);
+            $this->quote->setCustomerGroupId(GroupInterface::NOT_LOGGED_IN_ID);
+        }
     }
 
     /**
@@ -154,6 +179,9 @@ class PaymentHelper
             $orderModel = $this->orderFactory->create();
             try {
                 $order = $orderModel->loadByIncrementId($incrementId);
+                if (!$order->getData()) {
+                    $order = $this->createOrder();
+                }
             } catch (NoSuchEntityException $e) {
                 $order = $this->createOrder();
             }
