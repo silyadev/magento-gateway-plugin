@@ -236,7 +236,7 @@ class Sepa extends PaymentMethod
         $paymentDetails = [];
         $paymentDetails['payment_method'] = 'sepa';
         $paymentDetails['iban'] = $sepaDetails->getData('sepa_iban');
-        $paymentDetails['bic_swift'] = $sepaDetails->getData('sepa_bic_swift');
+        $paymentDetails['bic_swift'] = ($sepaDetails->getSepaBicSwift()) ?: 'XXXXXX12';
         $request->setPaymentDetails($paymentDetails);
 
         return $request;
@@ -465,7 +465,7 @@ class Sepa extends PaymentMethod
         $info->addData(
             [
                 'sepa_iban' => $additionalData->getSepaIban(),
-                'sepa_bic_swift' => ($additionalData->getSepaBicSwift()) ?: 'XXXX'
+                'sepa_bic_swift' => ($additionalData->getSepaBicSwift()) ?: 'XXXXXX12'
             ]
         );
 
@@ -496,6 +496,9 @@ class Sepa extends PaymentMethod
     {
         if ('order_place_redirect_url' === $field) {
             return $this->getOrderPlaceRedirectUrl();
+        }
+        if ('payment_action' == $field) {
+            return parent::getConfigData($field, $storeId);
         }
         if (null === $storeId) {
             $storeId = $this->getStore();
