@@ -30,6 +30,7 @@ use Magento\Framework\Stdlib\Cookie\CookieMetadataFactory;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Vendo\Gateway\Gateway\Vendo;
 use Magento\Checkout\Model\Session;
+use Magento\Framework\UrlInterface;
 
 
 class PaymentMethod extends Cc
@@ -259,6 +260,11 @@ class PaymentMethod extends Cc
     protected $checkoutSession;
 
     /**
+     * @var UrlInterface
+     */
+    protected $urlBuilder;
+
+    /**
      * @var string
      */
     protected $_infoBlockType = \Vendo\Gateway\Block\Payment\Info::class;
@@ -286,6 +292,7 @@ class PaymentMethod extends Cc
      * @param CookieManagerInterface $cookieManager
      * @param CookieMetadataFactory $cookieMetadataFactory
      * @param Session $checkoutSession
+     * @param UrlInterface $urlBuilder
      * @param array $data
      */
     public function __construct(
@@ -310,6 +317,7 @@ class PaymentMethod extends Cc
         CookieManagerInterface $cookieManager,
         CookieMetadataFactory $cookieMetadataFactory,
         Session $checkoutSession,
+        UrlInterface $urlBuilder,
         array $data = []
     )
     {
@@ -343,6 +351,7 @@ class PaymentMethod extends Cc
         $this->cookieManager = $cookieManager;
         $this->cookieMetadataFactory = $cookieMetadataFactory;
         $this->checkoutSession = $checkoutSession;
+        $this->urlBuilder = $urlBuilder;
     }
 
     /**
@@ -851,6 +860,8 @@ class PaymentMethod extends Cc
         // Add Settings 'success_url' .
         if (!empty($this->getConfigData('success_url'))) {
             $request->setSuccessUrl($this->getConfigData('success_url'));
+        } else {
+            $request->setSuccessUrl($this->urlBuilder->getUrl('vendo/callback/index/'));
         }
 
         // Set 'non_recurring' = true.
@@ -890,7 +901,10 @@ class PaymentMethod extends Cc
         // Add Settings 'success_url' .
         if (!empty($this->getConfigData('success_url'))) {
             $request->setSuccessUrl($this->getConfigData('success_url'));
+        } else {
+            $request->setSuccessUrl($this->urlBuilder->getUrl('vendo/callback/index/'));
         }
+
 
         // Set 'non_recurring' = true.
         $request->setNonRecurring(true);

@@ -16,6 +16,7 @@ use Magento\Framework\Model\Context;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\Registry;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Payment\Helper\Data;
 use Magento\Payment\Model\Method\AbstractMethod;
 use Magento\Payment\Model\Method\Logger;
@@ -82,6 +83,11 @@ class Sepa extends PaymentMethod
     private $paymentTokenRepository;
 
     /**
+     * @var UrlInterface
+     */
+    protected $urlBuilder;
+
+    /**
      * Sepa constructor.
      * @param Context $context
      * @param Registry $registry
@@ -105,6 +111,7 @@ class Sepa extends PaymentMethod
      * @param CookieMetadataFactory $cookieMetadataFactory
      * @param Session $checkoutSession
      * @param PaymentTokenRepositoryInterface $paymentTokenRepository
+     * @param UrlInterface $urlBuilder
      * @param array $data
      */
     public function __construct(
@@ -130,6 +137,7 @@ class Sepa extends PaymentMethod
         CookieMetadataFactory $cookieMetadataFactory,
         Session $checkoutSession,
         PaymentTokenRepositoryInterface $paymentTokenRepository,
+        UrlInterface $urlBuilder,
         array $data = []
     )
     {
@@ -156,6 +164,7 @@ class Sepa extends PaymentMethod
             $cookieManager,
             $cookieMetadataFactory,
             $checkoutSession,
+            $urlBuilder,
             $data
         );
 
