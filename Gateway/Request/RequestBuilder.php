@@ -173,4 +173,25 @@ class RequestBuilder
             'is_test' => $this->paymentConfig->getIsTestMode($storeId),
         ];
     }
+
+    public function getS2sPaymentRequest(OrderInterface $order, $txnId): array
+    {
+        $this->order = $order;
+        $params = [
+            'payment_details' => [
+                'verification_id' => $txnId
+            ],
+            'external_references' => [
+                'transaction_reference' => $order->getIncrementId()
+            ],
+            'amount' => $order->getGrandTotal(),
+            'currency' => $order->getOrderCurrencyCode(),
+            'shipping_address' => $this->getShippingAddressRequestPart(),
+            'request_details' => [
+                'browser_user_agent' => $_SERVER["HTTP_USER_AGENT"]
+            ],
+        ];
+
+        return array_merge($params, $this->getApiCredsRequestPart());
+    }
 }
