@@ -20,6 +20,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\CsrfAwareActionInterface;
 use Vendo\Gateway\Model\PaymentHelper;
 use Vendo\Gateway\Gateway\Request\RequestBuilder;
+use Magento\Framework\DataObject;
 
 class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
@@ -86,7 +87,7 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             $responseType = $params['callback'];
             $connection = $this->resourceConnection->getConnection();
             $table = $connection->getTableName(self::TABLE_NAME_ORDER);
-            $query = "SELECT `entity_id` FROM " . $table . " WHERE `increment_id` = " . trim($params['merchant_reference']) . " LIMIT 1";
+            $query = "SELECT `entity_id` FROM " . $table . " WHERE `increment_id` = '" . trim($params['merchant_reference']) . "' LIMIT 1";
             $orderId = $connection->fetchOne($query);
             $order = $this->orderRepository->get($orderId);
 
@@ -97,7 +98,9 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
                         ['is_closed' => 1]
                     );
 
-                    $request = $this->requestBuilder->getS2sPaymentRequest($order, $params['transaction_id']);
+                    $requestData = $this->requestBuilder->getS2sPaymentRequest($order, $params['transaction_id']);
+                    $request = new DataObject();
+                    $request->setData($requestData);
                     $response = $this->vendoGateway->postRequest($request, PaymentMethod::TRANSACTION_URL);
                     $this->vendoHelpers->log('Vendo Response (S2S): ' . json_encode($response), LogLevel::DEBUG);
                     $responseArray = json_decode($response);
