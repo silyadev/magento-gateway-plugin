@@ -188,6 +188,7 @@ class RequestBuilder
             'currency' => $order->getOrderCurrencyCode(),
             'shipping_address' => $this->getShippingAddressRequestPart(),
             'request_details' => [
+                'ip_address' => $order->getRemoteIp(),
                 'browser_user_agent' => $_SERVER["HTTP_USER_AGENT"]
             ],
         ];
