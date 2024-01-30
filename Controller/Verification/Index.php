@@ -89,80 +89,85 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
             $table = $connection->getTableName(self::TABLE_NAME_ORDER);
             $query = "SELECT `entity_id` FROM " . $table . " WHERE `increment_id` = '" . trim($params['merchant_reference']) . "' LIMIT 1";
             $orderId = $connection->fetchOne($query);
-            $order = $this->orderRepository->get($orderId);
 
-            if ($responseType == 'verification') {
-                if (!empty($params['status'])) {
-                    $this->paymentHelper->updateTransactionData(
-                        $params['transaction_id'],
-                        ['is_closed' => 1]
-                    );
+            if ($orderId) {
+                $order = $this->orderRepository->get($orderId);
 
-                    $requestData = $this->requestBuilder->getS2sPaymentRequest($order, $params['transaction_id']);
-                    $request = new DataObject();
-                    $request->setData($requestData);
-                    $response = $this->vendoGateway->postRequest($request, PaymentMethod::TRANSACTION_URL);
-                    $this->vendoHelpers->log('Vendo Response (S2S): ' . json_encode($response), LogLevel::DEBUG);
-                    $responseArray = json_decode($response);
-                    if (!empty($responseArray) && !empty($responseArray->status)
-                        && ($responseArray->status == self::RESPONSE_STATUS_OK_ONE || $responseArray->status == self::RESPONSE_STATUS_OK_TWO)) {
-                        $this->vendoHelpers->log('Vendo Status Response (S2S): ' . $responseArray->status, LogLevel::DEBUG);
+                if ($responseType == 'verification') {
+                    if (!empty($params['status'])) {
+                        $this->paymentHelper->updateTransactionData(
+                            $params['transaction_id'],
+                            ['is_closed' => 1]
+                        );
 
-                        try {
-                            if (!empty($responseArray->transaction->amount)) {
-                                $order->setBaseTotalPaid(number_format($responseArray->transaction->amount, 4, '.', ''));
-                                $order->setTotalPaid(number_format($responseArray->transaction->amount, 4, '.', ''));
+                        $requestData = $this->requestBuilder->getS2sPaymentRequest($order, $params['transaction_id']);
+                        $request = new DataObject();
+                        $request->setData($requestData);
+                        $response = $this->vendoGateway->postRequest($request, PaymentMethod::TRANSACTION_URL);
+                        $this->vendoHelpers->log('Vendo Response (S2S): ' . json_encode($response), LogLevel::DEBUG);
+                        $responseArray = json_decode($response);
+                        if (!empty($responseArray) && !empty($responseArray->status)
+                            && ($responseArray->status == self::RESPONSE_STATUS_OK_ONE || $responseArray->status == self::RESPONSE_STATUS_OK_TWO)) {
+                            $this->vendoHelpers->log('Vendo Status Response (S2S): ' . $responseArray->status, LogLevel::DEBUG);
+
+                            try {
+                                if (!empty($responseArray->transaction->amount)) {
+                                    $order->setBaseTotalPaid(number_format($responseArray->transaction->amount, 4, '.', ''));
+                                    $order->setTotalPaid(number_format($responseArray->transaction->amount, 4, '.', ''));
+                                }
+                                $order->setState(Order::STATE_PROCESSING)->setStatus(Order::STATE_PROCESSING);
+                                $order->setVendoPaymentResponseStatus(PaymentMethod::PAYMENT_RESPONSE_STATUS_USED_IN_CRON_SUCCESS);
+                                $this->orderRepository->save($order);
+                                $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>'; // Response OK
+                            } catch (\Exception $e) {
+                                $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
+                                $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
                             }
-                            $order->setState(Order::STATE_PROCESSING)->setStatus(Order::STATE_PROCESSING);
-                            $order->setVendoPaymentResponseStatus(PaymentMethod::PAYMENT_RESPONSE_STATUS_USED_IN_CRON_SUCCESS);
-                            $this->orderRepository->save($order);
-                            $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>'; // Response OK
-                        } catch (\Exception $e) {
-                            $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
-                            $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
                         }
-                    }
 
-                    $order->setVendoPaymentResponseStatus(PaymentMethod::PAYMENT_RESPONSE_STATUS_USED_IN_CRON_SUCCESS);
-                    $this->orderRepository->save($order);
-                } else {
-                    $order->setVendoPaymentResponseStatus(PaymentMethod::PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON_SET_IN_S2S);
-                    $this->orderRepository->save($order);
-                    $this->vendoHelpers->log('Vendo Set vendo_payment_response_status = 5, not use in Cron. (S2S)', LogLevel::DEBUG);
-                }
-                $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>';
-            }
-
-            if ($params['callback'] == 'transaction') {
-                if (!empty($params['transaction_status'])) {
-                    $this->paymentHelper
-                        ->createOrderTransaction($order, [
-                            'txn_id' => $params['transaction_id'],
-                            'type' => TransactionInterface::TYPE_CAPTURE,
-                            'is_closed' => 1,
-                            'parent_txn_id' => $params['original_transaction_id']
-                        ]);
-                    // Set 'flags' in invoice.
-                    $invoiceDetails = $order->getInvoiceCollection();
-                    /** @var Invoice $invoice */
-                    foreach ($invoiceDetails as $invoice) {
-                        try {
-                            $invoice->setState(Invoice::STATE_PAID);
-                            $invoice->setTransactionId($params['transaction_id']);
-                            $invoice->save();
-                            $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>'; // Response OK
-                        } catch (\Exception $e) {
-                            $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
-                            $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
-                        }
+                        $order->setVendoPaymentResponseStatus(PaymentMethod::PAYMENT_RESPONSE_STATUS_USED_IN_CRON_SUCCESS);
+                        $this->orderRepository->save($order);
+                    } else {
+                        $order->setVendoPaymentResponseStatus(PaymentMethod::PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON_SET_IN_S2S);
+                        $this->orderRepository->save($order);
+                        $this->vendoHelpers->log('Vendo Set vendo_payment_response_status = 5, not use in Cron. (S2S)', LogLevel::DEBUG);
                     }
-                } else {
-                    $order->setVendoPaymentResponseStatus(PaymentMethod::PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON_SET_IN_S2S);
-                    $this->orderRepository->save($order);
-                    $this->vendoHelpers->log('Vendo Set vendo_payment_response_status = 5, not use in Cron. (S2S)', LogLevel::DEBUG);
                     $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>';
                 }
 
+                if ($params['callback'] == 'transaction') {
+                    if (!empty($params['transaction_status'])) {
+                        $this->paymentHelper
+                            ->createOrderTransaction($order, [
+                                'txn_id' => $params['transaction_id'],
+                                'type' => TransactionInterface::TYPE_CAPTURE,
+                                'is_closed' => 1,
+                                'parent_txn_id' => $params['original_transaction_id']
+                            ]);
+                        // Set 'flags' in invoice.
+                        $invoiceDetails = $order->getInvoiceCollection();
+                        /** @var Invoice $invoice */
+                        foreach ($invoiceDetails as $invoice) {
+                            try {
+                                $invoice->setState(Invoice::STATE_PAID);
+                                $invoice->setTransactionId($params['transaction_id']);
+                                $invoice->save();
+                                $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>'; // Response OK
+                            } catch (\Exception $e) {
+                                $this->vendoHelpers->log($e->getMessage(), LogLevel::ERROR);
+                                $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_ERROR . '</code><errorMessage>' . $e->getMessage() . '</errorMessage>'; // Response ERROR
+                            }
+                        }
+                    } else {
+                        $order->setVendoPaymentResponseStatus(PaymentMethod::PAYMENT_RESPONSE_STATUS_NOT_USE_IN_CRON_SET_IN_S2S);
+                        $this->orderRepository->save($order);
+                        $this->vendoHelpers->log('Vendo Set vendo_payment_response_status = 5, not use in Cron. (S2S)', LogLevel::DEBUG);
+                        $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>';
+                    }
+
+                }
+            } else {
+                $contentOkOrError = '<code>' . self::S2S_RESPONSE_STATUS_OK . '</code>';
             }
         }
 
